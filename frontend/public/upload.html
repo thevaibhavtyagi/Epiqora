@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Upload your photo for clinical-grade AI skin analysis">
+  <meta name="theme-color" content="#ffffff">
+  <title>Upload Photo | Dermora</title>
+
+  <!-- Premium Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Modern Icon Library -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Core Stylesheets -->
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/upload.css">
+
+  <!-- Face API for robust Image Validation -->
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+</head>
+<body>
+  
+  <div class="bg-ambient"></div>
+
+  <main class="main">
+    <div class="container">
+      
+      <!-- Cursive & Minimal Stepper -->
+      <div class="stepper-container">
+        <div class="stepper-line-bg"></div>
+        <div class="stepper-line-progress" id="stepProgress"></div>
+        <div class="stepper">
+          <div class="step active" id="step1">
+            <div class="step-circle"><i class="fas fa-camera"></i></div>
+            <div class="step-cursive">Photo</div>
+          </div>
+          <div class="step" id="step2">
+            <div class="step-circle">2</div>
+            <div class="step-cursive">Analysis</div>
+          </div>
+          <div class="step" id="step3">
+            <div class="step-circle">3</div>
+            <div class="step-cursive">Details</div>
+          </div>
+          <div class="step" id="step4">
+            <div class="step-circle"><i class="fas fa-file-medical"></i></div>
+            <div class="step-cursive">Report</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Upload Interface -->
+      <div class="upload-card">
+        <div class="upload-header">
+          <span class="text-cursive-gold">Step One</span>
+          <h1 class="upload-title">Image Acquisition</h1>
+          <p class="upload-subtitle">Upload or take a clear photo of your skin. Our clinical engine will instantly scan your topography for a highly accurate assessment.</p>
+        </div>
+
+        <!-- View 1: Selection -->
+        <div class="upload-options" id="viewSelection">
+          <label for="fileInput" class="option-card">
+            <div class="icon-circle"><i class="fas fa-image"></i></div>
+            <div>
+              <div class="option-text">Device Gallery</div>
+              <div class="option-sub">Upload an existing photo</div>
+            </div>
+          </label>
+          <input type="file" id="fileInput" accept="image/*" style="display: none;">
+
+          <div class="divider">OR</div>
+
+          <button class="option-card" id="btnOpenCamera" style="border: 2px dashed #CBD5E1; width:100%; font-family:inherit; background:var(--color-bg-base);">
+            <div class="icon-circle" style="background: var(--color-brand-blue); color: var(--color-surface);"><i class="fas fa-camera-retro"></i></div>
+            <div>
+              <div class="option-text">Launch Camera</div>
+              <div class="option-sub">Take a live photo</div>
+            </div>
+          </button>
+        </div>
+
+        <!-- View 2: Live Camera -->
+        <div class="view-container" id="viewCamera">
+          <div class="media-box">
+            <video id="cameraVideo" autoplay playsinline></video>
+            <div class="camera-viewfinder"></div>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-secondary" id="btnCancelCamera"><i class="fas fa-arrow-left"></i> Back</button>
+            <button class="btn btn-primary" id="btnCapture"><i class="fas fa-crosshairs"></i> Capture Image</button>
+          </div>
+        </div>
+
+        <!-- View 3: Preview & HUD Scanner -->
+        <div class="view-container" id="viewPreview">
+          <div class="media-box" id="previewBox">
+            <img id="previewImage" alt="Captured Face">
+            
+            <!-- The Advanced HUD Scanner with Tail -->
+            <div class="hud-scanner" id="hudScanner">
+              <div class="hud-grid"></div>
+              <div class="hud-brackets">
+                <div class="hud-brackets-inner"></div>
+              </div>
+              <div class="hud-laser"></div>
+            </div>
+          </div>
+          
+          <div class="feedback-box feedback-loading" id="statusLoading">
+            <i class="fas fa-circle-notch fa-spin"></i> Running Biometrics <span class="loading-cursive">Analyzing...</span>
+          </div>
+          
+          <div class="feedback-box" id="statusResult"></div>
+
+          <div class="btn-group">
+            <button class="btn btn-secondary" id="btnRetake"><i class="fas fa-redo"></i> Retake</button>
+            <button class="btn btn-blue" id="btnAnalyze" disabled><i class="fas fa-magic"></i> Generate Report</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- The Perfected Guidelines Section -->
+      <div class="guidelines-section">
+        <div class="guidelines-header">
+          <h3 class="guidelines-title"><span class="text-cursive-gold">For the Best Results</span><br>Preparation Guide</h3>
+        </div>
+        <div class="guidelines-grid">
+          <div class="guide-card">
+            <div class="guide-icon"><i class="fas fa-sun"></i></div>
+            <div class="guide-text">Natural Lighting</div>
+            <div class="guide-sub">Face a window if possible</div>
+          </div>
+          <div class="guide-card">
+            <div class="guide-icon"><i class="fas fa-meh"></i></div>
+            <div class="guide-text">Neutral Face</div>
+            <div class="guide-sub">Keep expression relaxed</div>
+          </div>
+          <div class="guide-card">
+            <div class="guide-icon"><i class="fas fa-glasses"></i></div>
+            <div class="guide-text">No Accessories</div>
+            <div class="guide-sub">Remove glasses & hair</div>
+          </div>
+          <div class="guide-card">
+            <div class="guide-icon"><i class="fas fa-expand-arrows-alt"></i></div>
+            <div class="guide-text">Clear Focus</div>
+            <div class="guide-sub">Avoid blurry captures</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Global Toast UI -->
+  <div class="premium-toast" id="toastMessage">
+    <i class="fas fa-info-circle" id="toastIcon"></i>
+    <span id="toastText">Notification</span>
+  </div>
+
+  <canvas id="hiddenCanvas" style="display:none;"></canvas>
+
+  <!-- Essential Core App Scripts -->
+  <script src="js/core/api.js"></script>
+  <script src="js/core/storage.js"></script>
+  <script src="js/core/routerGuard.js"></script>
+  <script src="js/pages/upload.js"></script>
+  <script src="js/components/header.js"></script>
+</body>
+</html>

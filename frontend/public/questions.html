@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Answer personalized skin care questions for your Dermora clinical report">
+  <meta name="theme-color" content="#F8FAFC">
+  <title>Clinical Consultation | Dermora</title>
+
+  <!-- Premium Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Modern Icon Library -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Core Stylesheets (Absolute paths) -->
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/questions.css">
+</head>
+<body>
+  
+  <div class="bg-ambient"></div>
+
+  <!-- Header handled by system architecture -->
+  <!-- 
+  <header class="header"> ... </header> 
+  -->
+
+  <main class="main" style="padding-top: 120px; padding-bottom: 80px;">
+    <div class="container">
+      
+      <!-- Cursive & Minimal Stepper (Step 3 Active) -->
+      <div class="stepper-container">
+        <div class="stepper-line-bg"></div>
+        <!-- Progress line reaches Step 3 (66%) -->
+        <div class="stepper-line-progress" style="width: 66%;"></div>
+        <div class="stepper">
+          <div class="step completed" id="step1">
+            <div class="step-circle"><i class="fas fa-check"></i></div>
+            <div class="step-cursive">Photo</div>
+          </div>
+          <div class="step completed" id="step2">
+            <div class="step-circle"><i class="fas fa-check"></i></div>
+            <div class="step-cursive">Analysis</div>
+          </div>
+          <div class="step active" id="step3">
+            <div class="step-circle pulse-active"><i class="fas fa-clipboard-list"></i></div>
+            <div class="step-cursive">Consult</div>
+          </div>
+          <div class="step" id="step4">
+            <div class="step-circle"><i class="fas fa-file-medical"></i></div>
+            <div class="step-cursive">Report</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Questions Container -->
+      <div class="questions-card">
+        
+        <!-- State 1: Premium Neural Loading -->
+        <div class="questions-loading active" id="questionsLoading">
+          <div class="neural-core">
+            <div class="core-ring ring-outer"></div>
+            <div class="core-ring ring-inner"></div>
+            <div class="core-icon"><i class="fas fa-brain"></i></div>
+          </div>
+          <h2 class="processing-title">Calibrating Consultation</h2>
+          <p class="processing-subtitle" id="loadingMessage">Generating personalized questions based on your biometric map...</p>
+        </div>
+
+        <!-- State 2: The Consultation Form -->
+        <div class="questions-form hidden" id="questionsForm">
+          
+          <div class="questions-header">
+            <span class="text-cursive-gold">Personalize Your Routine</span>
+            <h1 class="questions-title">Clinical Consultation</h1>
+            <p class="questions-subtitle">To formulate the most effective regimen, our engine needs a few details about your lifestyle and current habits.</p>
+          </div>
+
+          <!-- Elegant Progress Bar -->
+          <div class="questions-progress-wrapper">
+            <div class="progress-text">
+              Question <span id="currentQuestion" class="fw-bold text-primary">1</span> of <span id="totalQuestions">0</span>
+            </div>
+            <div class="questions-progress-bar">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+          </div>
+
+          <!-- Dynamic Question Container -->
+          <div class="question-container" id="questionContainer">
+            <!-- Questions are dynamically injected here by JS -->
+          </div>
+
+          <!-- Actions -->
+          <div class="questions-actions">
+            <button class="premium-btn btn-secondary" id="backButton" style="display: none;">
+              <i class="fas fa-arrow-left"></i> Previous
+            </button>
+            <button class="premium-btn btn-primary" id="nextButton">
+              Next Question <i class="fas fa-arrow-right"></i>
+            </button>
+            <button class="premium-btn btn-submit" id="submitButton" style="display: none;">
+              <i class="fas fa-magic"></i> Generate Final Report
+            </button>
+          </div>
+
+          <!-- Optional Skip -->
+          <div class="questions-skip">
+            <button class="skip-link" id="skipButton">Skip consultation & proceed with AI baseline only</button>
+          </div>
+        </div>
+
+        <!-- State 3: Error Handling -->
+        <div class="questions-error hidden" id="questionsError">
+          <div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
+          <h3 class="error-title">Consultation Interrupted</h3>
+          <p class="error-message" id="errorMessage">Our engine encountered an anomaly while generating your consultation.</p>
+          <button class="premium-btn btn-primary" id="retryButton">
+            <i class="fas fa-redo"></i> Restart Consultation
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Absolute Path Scripts -->
+  <script src="/js/core/api.js"></script>
+  <script src="/js/core/storage.js"></script>
+  <script src="/js/core/routerGuard.js"></script>
+  <script src="/js/pages/questions.js"></script>
+  <script src="/js/components/header.js"></script>
+</body>
+</html>

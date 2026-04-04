@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="View your Dermora clinical AI skin analysis results">
+  <meta name="theme-color" content="#F8FAFC">
+  <title>Clinical Analysis | Dermora</title>
+
+  <!-- Premium Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Modern Icon Library -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Face API for Frontend Biometric Mapping -->
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+  <!-- Core Stylesheets (Absolute paths) -->
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/analysis.css">
+</head>
+<body>
+  
+  <div class="bg-ambient"></div>
+
+  <!-- Header is handled by your system architecture -->
+  <!-- 
+  <header class="header"> ... </header> 
+  -->
+
+  <main class="main" style="padding-top: 120px; padding-bottom: 80px;">
+    <div class="container">
+      
+      <!-- Cursive & Minimal Stepper -->
+      <div class="stepper-container">
+        <div class="stepper-line-bg"></div>
+        <div class="stepper-line-progress" style="width: 33%;"></div>
+        <div class="stepper">
+          <div class="step completed" id="step1">
+            <div class="step-circle">
+              <i class="fas fa-check"></i>
+            </div>
+            <div class="step-cursive">Photo</div>
+          </div>
+          <div class="step active" id="step2">
+            <div class="step-circle pulse-active">
+              <i class="fas fa-microchip"></i>
+            </div>
+            <div class="step-cursive">Analysis</div>
+          </div>
+          <div class="step" id="step3">
+            <div class="step-circle">3</div>
+            <div class="step-cursive">Details</div>
+          </div>
+          <div class="step" id="step4">
+            <div class="step-circle">
+              <i class="fas fa-file-medical"></i>
+            </div>
+            <div class="step-cursive">Report</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Analysis Container -->
+      <div class="analysis-card">
+        
+        <!-- State 1: Premium Neural Processing Animation -->
+        <div class="analysis-loading active" id="analysisLoading">
+          <div class="neural-core">
+            <div class="core-ring ring-outer"></div>
+            <div class="core-ring ring-inner"></div>
+            <div class="core-icon">
+              <i class="fas fa-brain"></i>
+            </div>
+          </div>
+          <h2 class="processing-title">Synthesizing Biometrics</h2>
+          <p class="processing-subtitle" id="analysisLoadingMessage">Establishing secure neural connection...</p>
+          
+          <div class="processing-steps">
+            <div class="proc-step active" id="procStep1">
+              <i class="fas fa-fingerprint"></i> Mapping Facial Topography
+            </div>
+            <div class="proc-step" id="procStep2">
+              <i class="fas fa-search-plus"></i> Analyzing Micro-Pigmentation
+            </div>
+            <div class="proc-step" id="procStep3">
+              <i class="fas fa-chart-network"></i> Generating Clinical Profile
+            </div>
+          </div>
+        </div>
+
+        <!-- State 2: High-End Interactive Results Dashboard -->
+        <div class="analysis-results hidden" id="analysisResults">
+          <div class="results-header">
+            <span class="text-cursive-gold">Diagnostic Complete</span>
+            <h1 class="results-title">Your Clinical Profile</h1>
+            <p class="results-subtitle">Review your AI-mapped biometrics before we calibrate your personalized routine.</p>
+          </div>
+
+          <!-- Split Layout for Image & Metrics -->
+          <div class="results-dashboard">
+            
+            <!-- Left Panel: Interactive Face Map with SVG HUD Overlay -->
+            <div class="diagnostic-image-panel">
+              <img id="analyzedImage" alt="User Biometric Map" src="" crossorigin="anonymous">
+              
+              <div class="scanning-overlay"></div>
+              
+              <!-- Responsive SVG Canvas for Heatmaps, Lines, and Badges -->
+              <svg id="facialOverlay" class="facial-overlay-svg" preserveAspectRatio="xMidYMid slice">
+                <defs>
+                  <!-- The Gaussian Blur filter creates the smooth, organic heatmap look -->
+                  <filter id="heatmapGlow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="20" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                  </filter>
+                </defs>
+              </svg>
+            </div>
+
+            <!-- Right Panel: Core Metrics -->
+            <div class="diagnostic-metrics-panel">
+              
+              <!-- Master Score Card -->
+              <div class="overall-score-card">
+                <div class="score-visual">
+                  <div class="score-circle">
+                    <svg class="score-ring" viewBox="0 0 200 200">
+                      <circle cx="100" cy="100" r="90" class="score-ring-bg"></circle>
+                      <circle cx="100" cy="100" r="90" class="score-ring-fill" id="scoreRingFill"></circle>
+                    </svg>
+                    <div class="score-content">
+                      <div class="score-number" id="overallScore">0</div>
+                      <div class="score-label">Index</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="score-description">
+                  <h3 class="score-heading">Skin Health Assessment</h3>
+                  <p id="scoreInterpretation">Synthesizing data to determine your overall skin health index.</p>
+                </div>
+              </div>
+
+              <!-- Granular Metrics Grid -->
+              <div class="results-grid">
+                <div class="result-card">
+                  <div class="result-icon"><i class="fas fa-tint"></i></div>
+                  <h3 class="result-label">Skin Type</h3>
+                  <p class="result-value" id="skinType">-</p>
+                  <div class="result-meta" id="skinTypeConfidence">-</div>
+                </div>
+
+                <div class="result-card">
+                  <div class="result-icon"><i class="fas fa-virus"></i></div>
+                  <h3 class="result-label">Acne / Blemishes</h3>
+                  <p class="result-value" id="acneStatus">-</p>
+                  <div class="result-meta" id="acneSeverity">-</div>
+                </div>
+
+                <div class="result-card">
+                  <div class="result-icon"><i class="fas fa-sun"></i></div>
+                  <h3 class="result-label">Pigmentation</h3>
+                  <p class="result-value" id="pigmentationLevel">-</p>
+                  <div class="result-meta">Melanin Distribution</div>
+                </div>
+
+                <div class="result-card">
+                  <div class="result-icon"><i class="fas fa-eye"></i></div>
+                  <h3 class="result-label">Dark Circles</h3>
+                  <p class="result-value" id="darkCircles">-</p>
+                  <div class="result-meta">Periorbital Assessment</div>
+                </div>
+
+                <div class="result-card">
+                  <div class="result-icon"><i class="fas fa-dot-circle"></i></div>
+                  <h3 class="result-label">Pore Visibility</h3>
+                  <p class="result-value" id="poresVisibility">-</p>
+                  <div class="result-meta">Surface Congestion</div>
+                </div>
+
+                <div class="result-card">
+                  <div class="result-icon"><i class="fas fa-leaf"></i></div>
+                  <h3 class="result-label">Skin Texture</h3>
+                  <p class="result-value" id="textureSmoothness">-</p>
+                  <div class="result-meta">Micro-smoothness</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Actions -->
+          <div class="results-actions">
+            <button class="analysis-btn analysis-btn-secondary" id="btnRetake">
+              <i class="fas fa-redo"></i> Discard & Retake
+            </button>
+            <button class="analysis-btn analysis-btn-primary" id="btnContinue">
+              Proceed to Calibration <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- State 3: Error Handling -->
+        <div class="analysis-error hidden" id="analysisError">
+          <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <h3 class="error-title">Diagnostic Interrupted</h3>
+          <p class="error-message" id="errorMessage">Our engine encountered an anomaly while processing your biometrics.</p>
+          <button class="analysis-btn analysis-btn-primary" id="btnRetry">
+            <i class="fas fa-redo"></i> Restart Diagnostic
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Absolute Path Scripts -->
+  <script src="/js/core/api.js"></script>
+  <script src="/js/core/storage.js"></script>
+  <script src="/js/core/routerGuard.js"></script>
+  <script src="/js/pages/analysis.js"></script>
+  <script src="/js/components/header.js"></script>
+</body>
+</html>

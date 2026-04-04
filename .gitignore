@@ -1,0 +1,26 @@
+# Node modules
+node_modules/
+
+# Environment variables (IMPORTANT - never push secrets)
+.env
+.env.*
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build folders
+dist/
+build/
+coverage/
+
+# VS Code settings (optional)
+.vscode/
+
+# Misc
+*.tmp
+*.cache
