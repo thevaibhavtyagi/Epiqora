@@ -3,118 +3,205 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Your personalized skincare report from DermAI Pro">
-  <meta name="theme-color" content="#0f172a">
-  <title>Your Report | DermAI Pro</title>
+  <meta name="description" content="Your personalized skincare report from Dermora">
+  <meta name="theme-color" content="#F8FAFC">
+  <title>Clinical Report | Dermora</title>
 
-  <!-- Fonts -->
+  <!-- Premium Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Icons -->
+  <!-- Modern Icon Library -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-  <link rel="stylesheet" href="styles/main.css">
-  <link rel="stylesheet" href="styles/report.css">
-  <link rel="stylesheet" href="styles/chat.css">
+  <!-- HTML2Canvas for High-Res PNG Generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <!-- Core Stylesheets (Absolute paths) -->
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/report.css">
 </head>
 <body>
-  <main class="main">
-    <!-- Header -->
-    <header class="header">
-      <div class="container">
-        <div class="header-content">
-          <a href="/" class="logo">
-            <div class="logo-icon">
-              <i class="fas fa-brain"></i>
+  
+  <div class="bg-ambient"></div>
+
+  <!-- Header handled by system architecture -->
+  <!-- 
+  <header class="header"> ... </header> 
+  -->
+
+  <main class="main" style="padding-top: 120px; padding-bottom: 80px;">
+    <div class="container">
+      
+      <!-- Cursive & Minimal Stepper (Step 4 Active) -->
+      <div class="stepper-container">
+        <div class="stepper-line-bg"></div>
+        <div class="stepper-line-progress" style="width: 100%;"></div>
+        <div class="stepper">
+          <div class="step completed" id="step1">
+            <div class="step-circle">
+              <i class="fas fa-check"></i>
             </div>
-            <span class="logo-text">DermAI Pro</span>
-          </a>
-          <button class="header-action" id="printButton" title="Print Report">
-            <i class="fas fa-print"></i>
+            <div class="step-cursive">Photo</div>
+          </div>
+          <div class="step completed" id="step2">
+            <div class="step-circle">
+              <i class="fas fa-check"></i>
+            </div>
+            <div class="step-cursive">Analysis</div>
+          </div>
+          <div class="step completed" id="step3">
+            <div class="step-circle">
+              <i class="fas fa-check"></i>
+            </div>
+            <div class="step-cursive">Consult</div>
+          </div>
+          <div class="step active" id="step4">
+            <div class="step-circle pulse-active">
+              <i class="fas fa-file-medical"></i>
+            </div>
+            <div class="step-cursive">Report</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Report Container -->
+      <div class="report-wrapper">
+        
+        <!-- State 1: Premium Neural Loading -->
+        <div class="report-loading active" id="reportLoading">
+          <div class="neural-core">
+            <div class="core-ring ring-outer"></div>
+            <div class="core-ring ring-inner"></div>
+            <div class="core-icon">
+              <i class="fas fa-file-signature"></i>
+            </div>
+          </div>
+          <h2 class="processing-title">Finalizing Protocol</h2>
+          <p class="processing-subtitle" id="loadingMessage">Generating your clinical-grade skincare regimen...</p>
+        </div>
+
+        <!-- State 2: The A4 Printable Report -->
+        <div class="report-content hidden" id="reportContent">
+          
+          <div class="report-header-text">
+            <span class="text-cursive-gold">Regimen Complete</span>
+            <h1 class="report-main-title">Your Clinical Protocol</h1>
+            <p class="report-subtitle">Your personalized, AI-generated treatment plan is ready. Save it for your records.</p>
+          </div>
+
+          <!-- THE A4 CANVAS ENGINE TARGET -->
+          <div class="a4-template" id="printableReport">
+            
+            <!-- Diagonal Watermark -->
+            <div class="watermark-bg">Dermora</div>
+            
+            <!-- Document Header -->
+            <div class="doc-header">
+              <div class="doc-brand">
+                <i class="fas fa-spa"></i> Dermora Clinical
+              </div>
+              <div class="doc-date" id="reportDate">Date: --</div>
+            </div>
+
+            <!-- Patient Biometrics Block -->
+            <div class="patient-profile">
+              <div class="patient-image">
+                <img id="patientPhoto" src="" alt="Patient Biometrics">
+              </div>
+              <div class="patient-stats">
+                <h2 class="patient-title">Biometric Profile</h2>
+                <div class="stat-grid">
+                  <div class="stat-box">
+                    <span class="stat-label">Skin Health Index</span>
+                    <span class="stat-value text-blue" id="patientScore">--</span>
+                  </div>
+                  <div class="stat-box">
+                    <span class="stat-label">Primary Skin Type</span>
+                    <span class="stat-value" id="patientType">--</span>
+                  </div>
+                  <div class="stat-box">
+                    <span class="stat-label">AI Confidence</span>
+                    <span class="stat-value">High</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dynamic 2-Column Content Injected Here by JS -->
+            <div class="doc-body" id="dynamicReportBody">
+              <!-- Routines and Tips go here via grid layout -->
+            </div>
+
+            <!-- Footer -->
+            <div class="doc-footer">
+              <p>This clinical protocol was generated by the Dermora AI Engine. For informational purposes only.</p>
+              <div class="signature">Dermora</div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="report-actions">
+            <button class="premium-btn btn-secondary" id="newAnalysisButton">
+              <i class="fas fa-redo"></i> Start New Analysis
+            </button>
+            <button class="premium-btn btn-primary" id="downloadPngButton">
+              <i class="fas fa-image"></i> Download High-Res PNG
+            </button>
+          </div>
+        </div>
+
+        <!-- State 3: Error Handling -->
+        <div class="report-error hidden" id="reportError">
+          <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <h3 class="error-title">Generation Interrupted</h3>
+          <p class="error-message" id="errorMessage">Our engine encountered an anomaly while writing your report.</p>
+          <button class="premium-btn btn-primary" id="retryButton">
+            <i class="fas fa-redo"></i> Retry
           </button>
         </div>
+
       </div>
-    </header>
-
-    <!-- Main Content -->
-    <section class="report-section">
-      <div class="container">
-        <div class="report-wrapper">
-          <!-- Progress Indicator -->
-          <div class="step-progress">
-            <div class="step-item">
-              <div class="step-number">1</div>
-              <div class="step-label">Photo</div>
-            </div>
-            <div class="step-line"></div>
-            <div class="step-item">
-              <div class="step-number">2</div>
-              <div class="step-label">Analysis</div>
-            </div>
-            <div class="step-line"></div>
-            <div class="step-item">
-              <div class="step-number">3</div>
-              <div class="step-label">Questions</div>
-            </div>
-            <div class="step-line"></div>
-            <div class="step-item active">
-              <div class="step-number">4</div>
-              <div class="step-label">Report</div>
-            </div>
-          </div>
-
-          <!-- Report Container -->
-          <div class="report-container" id="reportContainer">
-            <!-- Loading State -->
-            <div class="report-loading" id="reportLoading">
-              <div class="spinner"></div>
-              <p id="loadingMessage">Generating your personalized report...</p>
-            </div>
-
-            <!-- Report Content (printed as A4) -->
-            <div class="report-content" id="reportContent">
-              <!-- Report will be dynamically generated here -->
-            </div>
-
-            <!-- Error State -->
-            <div class="report-error" id="reportError">
-              <div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
-              <h3 class="error-title">Unable to Load Report</h3>
-              <p class="error-message" id="errorMessage">Something went wrong while generating your report</p>
-              <button class="button-primary" id="retryButton">
-                <i class="fas fa-redo"></i> Try Again
-              </button>
-            </div>
-          </div>
-
-          <!-- Report Actions -->
-          <div class="report-actions" id="reportActions" style="display: none;">
-            <button class="button-primary" id="downloadButton">
-              <i class="fas fa-download"></i> Download PDF
-            </button>
-            <button class="button-secondary" id="newAnalysisButton">
-              <i class="fas fa-redo"></i> New Analysis
-            </button>
-          </div>
-
-          <!-- Chat Sidebar (prepared for Phase 5) -->
-          <div class="chat-container" id="chatContainer">
-            <button class="chat-toggle" id="chatToggle" title="Open AI Assistant">
-              <i class="fas fa-comments"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
+    </div>
   </main>
 
-  <!-- Scripts -->
-  <script src="js/core/api.js"></script>
-  <script src="js/core/storage.js"></script>
-  <script src="js/core/routerGuard.js"></script>
-  <script src="js/components/chat-sidebar.js"></script>
-  <script src="js/pages/report.js"></script>
+  <!-- SLIDING DERMAI CHAT SIDEBAR -->
+  <button class="chat-trigger-btn" id="chatTriggerBtn">
+    <i class="fas fa-comments"></i> Ask DermAI
+  </button>
+
+  <div class="chat-sidebar" id="chatSidebar">
+    <div class="chat-header">
+      <div class="chat-header-title">
+        <i class="fas fa-robot"></i> DermAI Assistant
+      </div>
+      <button class="close-chat-btn" id="closeChatBtn">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="chat-messages" id="chatMessages">
+      <div class="message ai-message">
+        Hello! I'm DermAI. I formulated your clinical protocol. Do you have any questions about your routines or recommended products?
+      </div>
+    </div>
+    
+    <div class="chat-input-area">
+      <input type="text" class="chat-input" id="chatInput" placeholder="Ask about your regimen...">
+      <button class="chat-send-btn" id="sendChatBtn">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Absolute Path Scripts -->
+  <script src="/js/core/api.js"></script>
+  <script src="/js/core/storage.js"></script>
+  <script src="/js/core/routerGuard.js"></script>
+  <script src="/js/pages/report.js"></script>
+  <script src="/js/components/header.js"></script>
 </body>
 </html>

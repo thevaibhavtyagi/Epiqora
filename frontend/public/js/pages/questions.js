@@ -1,13 +1,13 @@
 /**
  * Dermora Pro - Questions Page Script
- * Handles dynamic question loading, validation, and highly stylized answer submission.
+ * Handles dynamic question loading, validation, and answer submission.
+ * Immediately routes to the Report page for backend processing.
  */
 
 (function() {
   'use strict';
 
   const QuestionsPage = {
-    // State management
     state: {
       questions: [],
       answers: {},
@@ -16,7 +16,6 @@
       hasError: false,
     },
 
-    // DOM elements cache
     elements: {
       loading: document.getElementById('questionsLoading'),
       form: document.getElementById('questionsForm'),
@@ -36,7 +35,6 @@
     async init() {
       console.log('[Dermora] Initializing questions module');
       
-      // Attempt security guard execution safely
       if (typeof RouterGuard !== 'undefined' && typeof RouterGuard.guardPage === 'function') {
         try { RouterGuard.guardPage(); } catch(e) {}
       }
@@ -64,8 +62,6 @@
 
     async loadQuestions() {
       try {
-        console.log('[Dermora] Fetching dynamic questions payload...');
-        
         let storedData = null;
         if (typeof Storage !== 'undefined' && typeof Storage.getAnalysis === 'function') {
           storedData = Storage.getAnalysis();
@@ -75,14 +71,12 @@
           throw new Error('Biometric data not found. Please upload an image first.');
         }
 
-        // Must exist in api.js globally
         if (typeof fetchQuestions !== 'function') {
           throw new Error('Core API missing (fetchQuestions function not found).');
         }
 
         const rawData = await fetchQuestions(storedData.analysis);
         
-        // Robust Array Parser
         let questionsArray = [];
         try {
           let parsed = typeof rawData === 'string' 
@@ -104,9 +98,6 @@
           throw new Error('Invalid format received from AI engine. Retrying recommended.');
         }
         
-        console.log(`[Dermora] Loaded ${this.state.questions.length} questions successfully`);
-        
-        // Initialize exact answer structure
         this.state.answers = {};
         this.state.questions.forEach(q => {
           this.state.answers[q.id] = null;
@@ -126,37 +117,23 @@
 
     displayCurrentQuestion() {
       const question = this.state.questions[this.state.currentQuestionIndex];
-      
       if (!question) return;
 
       this.elements.container.innerHTML = '';
-
-      // Fade-in animation block
       const questionBlock = document.createElement('div');
       questionBlock.className = 'question-block';
 
-      // Elegant Label
       const label = document.createElement('label');
       label.className = 'question-label';
       label.textContent = question.question;
       questionBlock.appendChild(label);
 
-      // Render correct high-end input type
       switch (question.type) {
-        case 'single_choice':
-          this.renderSingleChoice(questionBlock, question);
-          break;
-        case 'multiple_choice':
-          this.renderMultipleChoice(questionBlock, question);
-          break;
-        case 'text':
-          this.renderTextInput(questionBlock, question);
-          break;
-        case 'range':
-          this.renderRangeSlider(questionBlock, question);
-          break;
-        default:
-          this.renderSingleChoice(questionBlock, question);
+        case 'single_choice': this.renderSingleChoice(questionBlock, question); break;
+        case 'multiple_choice': this.renderMultipleChoice(questionBlock, question); break;
+        case 'text': this.renderTextInput(questionBlock, question); break;
+        case 'range': this.renderRangeSlider(questionBlock, question); break;
+        default: this.renderSingleChoice(questionBlock, question);
       }
 
       this.elements.container.appendChild(questionBlock);
@@ -168,7 +145,6 @@
       optionsGrid.className = 'question-options-grid';
 
       question.options.forEach((optionText) => {
-        // Build the premium option card structure
         const labelEl = document.createElement('label');
         labelEl.className = 'premium-option';
 
@@ -253,7 +229,6 @@
       const container = document.createElement('div');
       container.className = 'premium-range-container';
 
-      // Big numeric display
       const valueDisplay = document.createElement('div');
       valueDisplay.className = 'premium-range-value';
       
@@ -327,79 +302,34 @@
       }
     },
 
-    async handleSubmit() {
+    // ==========================================
+    // CRITICAL FIX: Instant Routing to /report
+    // ==========================================
+    handleSubmit() {
       if (typeof Storage !== 'undefined' && typeof Storage.saveAnswers === 'function') {
         Storage.saveAnswers(this.state.answers);
       }
 
       this.elements.submitButton.disabled = true;
-      this.elements.submitButton.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processing Report...';
+      this.elements.submitButton.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Finalizing Data...';
 
-      try {
-        const analysisData = typeof Storage !== 'undefined' ? Storage.getAnalysis() : null;
-        if (!analysisData) throw new Error('System anomaly: Biometric data absent.');
-
-        const answersArray = Object.keys(this.state.answers).map(key => ({
-          questionId: key,
-          answer: this.state.answers[key]
-        }));
-
-        if (typeof generateReport !== 'function') throw new Error('Reporting engine missing.');
-
-        const reportResponse = await generateReport(
-          analysisData.analysis, 
-          this.state.questions, 
-          answersArray
-        );
-
-        if (typeof Storage !== 'undefined') {
-          Storage.saveReport(reportResponse.report || reportResponse);
-        }
-
-        setTimeout(() => {
-          window.location.href = '/report'; // Clean routing to the final page
-        }, 800);
-      } catch (error) {
-        console.error('[Dermora] Report generation failed:', error);
-        this.elements.submitButton.disabled = false;
-        this.elements.submitButton.innerHTML = '<i class="fas fa-magic"></i> Generate Final Report';
-        alert('Engine formulation failed. Please verify connection and retry.');
-      }
+      // Instantly route to Report Page so user sees the premium Neural Loading screen
+      setTimeout(() => {
+        window.location.href = '/report'; 
+      }, 400);
     },
 
-    async handleSkip() {
+    handleSkip() {
       if (typeof Storage !== 'undefined' && typeof Storage.saveAnswers === 'function') {
         Storage.saveAnswers(this.state.answers);
       }
 
       this.elements.skipButton.disabled = true;
-      this.elements.skipButton.textContent = 'Generating baseline report...';
+      this.elements.skipButton.textContent = 'Bypassing consultation...';
 
-      try {
-        const analysisData = typeof Storage !== 'undefined' ? Storage.getAnalysis() : null;
-        if (!analysisData) throw new Error('System anomaly: Biometric data absent.');
-
-        const answersArray = Object.keys(this.state.answers).map(key => ({
-          questionId: key,
-          answer: this.state.answers[key]
-        }));
-
-        const reportResponse = await generateReport(
-          analysisData.analysis, 
-          this.state.questions, 
-          answersArray
-        );
-        
-        if (typeof Storage !== 'undefined') Storage.saveReport(reportResponse.report || reportResponse);
-
-        setTimeout(() => {
-          window.location.href = '/report';
-        }, 800);
-      } catch (error) {
-        console.error('[Dermora] Skip generation failed:', error);
-        this.elements.skipButton.disabled = false;
-        this.elements.skipButton.textContent = 'Skip consultation & proceed with AI baseline only';
-      }
+      setTimeout(() => {
+        window.location.href = '/report';
+      }, 400);
     },
 
     showError(message) {
@@ -430,7 +360,6 @@
     },
   };
 
-  // Initialize strictly when DOM is ready
   document.addEventListener('DOMContentLoaded', () => {
     QuestionsPage.init();
   });
