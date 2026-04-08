@@ -4,9 +4,20 @@
  */
 
 // Configuration - Dynamic API URL for development and production
+// const API_BASE_URL = (() => {
+//   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+//     return 'http://localhost:5000';
+//   }
+//   return '';
+// })();
+
+// Configuration - Dynamic API URL for development and production
 const API_BASE_URL = (() => {
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return 'http://localhost:5000';
+  const host = window.location.hostname;
+  // We added your laptop's IP address here
+  if (host === 'localhost' || host === '127.0.0.1' || host === '172.22.77.141') {
+    // This dynamically points to whichever address you are using to view the site
+    return `http://${host}:5000`; 
   }
   return '';
 })();
