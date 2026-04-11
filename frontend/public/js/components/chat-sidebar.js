@@ -6,6 +6,7 @@ class ChatSidebar {
     this.messages = [];
     this.isLoading = false;
     this.messageCount = 0;
+    this.isOpen = false;
     this.setupDOM();
     this.bindEvents();
     this.initializeWelcomeMessage();
@@ -28,22 +29,33 @@ class ChatSidebar {
     this.toggleBtn = document.getElementById('chat-toggle-btn');
     this.closeBtn = document.querySelector('.chat-close-btn');
     this.badge = document.getElementById('chat-badge');
+    this.overlay = document.getElementById('chat-overlay');
   }
 
   /**
    * Get HTML template for chat sidebar
    */
   getTemplate() {
-    return `<!-- Chat Sidebar Component -->
-<div id="chat-sidebar" class="chat-sidebar hidden">
+    return `<!-- Chat Overlay -->
+<div id="chat-overlay" class="chat-overlay"></div>
+
+<!-- Chat Sidebar Component -->
+<div id="chat-sidebar" class="chat-sidebar">
   <!-- Header -->
   <div class="chat-header">
     <div class="chat-header-content">
-      <h3>DermAI Assistant</h3>
-      <p>Personalized skin care advice</p>
+      <div class="chat-header-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+        </svg>
+      </div>
+      <div class="chat-header-text">
+        <h3>EpiqAI Assistant</h3>
+        <p>Your personal skincare advisor</p>
+      </div>
     </div>
     <button class="chat-close-btn" aria-label="Close chat">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="18" y1="6" x2="6" y2="18"></line>
         <line x1="6" y1="6" x2="18" y2="18"></line>
       </svg>
@@ -68,20 +80,28 @@ class ChatSidebar {
           maxlength="500"
         />
         <button type="submit" class="chat-send-btn" aria-label="Send message">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M16.6915026,12.4744748 L3.50612381,13.2599618 C3.19218622,13.2599618 3.03521743,13.4170592 3.03521743,13.5741566 L1.15159189,20.0151496 C0.8376543,20.8006365 0.99,21.89 1.77946707,22.52 C2.41,22.99 3.50612381,23.1 4.13399899,22.8429026 L21.714504,14.0454487 C22.6563168,13.5741566 23.1272231,12.6315722 22.9702544,11.6889879 L4.13399899,1.16865249 C3.34915502,0.9115551 2.40734225,1.02284422 1.77946707,1.4941365 C0.994623095,2.12604706 0.837654326,3.0686314 1.15159189,3.85411826 L3.03521743,10.4951702 C3.03521743,10.6522676 3.19218622,10.809365 3.50612381,10.809365 L16.6915026,11.5948519 C16.6915026,11.5948519 17.1624089,11.5948519 17.1624089,11.0235597 L17.1624089,12.0661439 C17.1624089,12.4744748 16.6915026,12.4744748 16.6915026,12.4744748 Z"></path>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
           </svg>
         </button>
       </div>
     </form>
-    <p class="chat-disclaimer">Powered by AI - For informational purposes only</p>
+    <p class="chat-disclaimer">
+      <span class="chat-disclaimer-icon">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+        </svg>
+      </span>
+      AI-powered advice - For informational purposes only
+    </p>
   </div>
 </div>
 
 <!-- Chat Toggle Button (Floating) -->
-<button id="chat-toggle-btn" class="chat-toggle-btn" aria-label="Open chat">
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"></path>
+<button id="chat-toggle-btn" class="chat-toggle-btn" aria-label="Open chat assistant">
+  <svg class="chat-icon-open" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+    <path d="M7 9h10v2H7zm0-3h10v2H7z"/>
   </svg>
   <span class="chat-badge" id="chat-badge">1</span>
 </button>`;
@@ -94,8 +114,19 @@ class ChatSidebar {
     this.form.addEventListener('submit', (e) => this.handleSubmit(e));
     this.toggleBtn.addEventListener('click', () => this.toggle());
     this.closeBtn.addEventListener('click', () => this.close());
+    this.overlay.addEventListener('click', () => this.close());
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.isOpen) {
+        this.close();
+      }
+    });
+    
     this.inputField.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') this.close();
+      if (e.key === 'Enter' && !e.shiftKey) {
+        // Form will handle submit
+      }
     });
   }
 
@@ -106,17 +137,17 @@ class ChatSidebar {
     const skinData = sessionStorage.getItem('analysis');
     const answersData = sessionStorage.getItem('answers');
     
-    let welcomeText = "Hello! I'm your DermAI Assistant. ";
+    let welcomeText = "Hello! I'm your EpiqAI Assistant. ";
     
     if (skinData) {
       try {
         const analysis = JSON.parse(skinData);
-        welcomeText += `I've reviewed your skin analysis. How can I help improve your skincare routine?`;
+        welcomeText += "I've reviewed your skin analysis and I'm here to help you understand your results and optimize your skincare routine. What would you like to know?";
       } catch (e) {
-        welcomeText += "Feel free to ask questions about your skin analysis.";
+        welcomeText += "Feel free to ask me any questions about your skin analysis or skincare routine.";
       }
     } else {
-      welcomeText += "Ask me anything about skincare and skin health.";
+      welcomeText += "I'm here to help with skincare questions and personalized recommendations. How can I assist you today?";
     }
     
     this.addMessage(welcomeText, 'assistant');
@@ -129,7 +160,7 @@ class ChatSidebar {
     e.preventDefault();
     
     const message = this.inputField.value.trim();
-    if (!message) return;
+    if (!message || this.isLoading) return;
     
     // Add user message
     this.addMessage(message, 'user');
@@ -137,6 +168,7 @@ class ChatSidebar {
     this.inputField.focus();
     
     // Show typing indicator
+    this.isLoading = true;
     this.showTypingIndicator();
     
     try {
@@ -159,6 +191,7 @@ class ChatSidebar {
       
       // Remove typing indicator
       this.removeTypingIndicator();
+      this.isLoading = false;
       
       if (!response.ok) {
         throw new Error('Chat request failed');
@@ -169,9 +202,10 @@ class ChatSidebar {
       this.scrollToBottom();
     } catch (error) {
       this.removeTypingIndicator();
-      console.error('[v0] Chat error:', error);
+      this.isLoading = false;
+      console.error('[Epiqora] Chat error:', error);
       this.addMessage(
-        "Sorry, I couldn't process your message. Please try again.",
+        "I apologize, but I couldn't process your message at this time. Please try again in a moment.",
         'assistant'
       );
     }
@@ -184,6 +218,16 @@ class ChatSidebar {
     const messageEl = document.createElement('div');
     messageEl.className = `chat-message ${sender}`;
     
+    // Add avatar for assistant messages
+    if (sender === 'assistant') {
+      const avatarEl = document.createElement('div');
+      avatarEl.className = 'chat-avatar';
+      avatarEl.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+      </svg>`;
+      messageEl.appendChild(avatarEl);
+    }
+    
     const contentEl = document.createElement('div');
     contentEl.className = 'chat-message-content';
     contentEl.textContent = text;
@@ -194,7 +238,7 @@ class ChatSidebar {
     this.messages.push({ text, sender, timestamp: Date.now() });
     
     // Update badge if message is from assistant and sidebar is closed
-    if (sender === 'assistant' && this.sidebar.classList.contains('hidden')) {
+    if (sender === 'assistant' && !this.isOpen) {
       this.messageCount++;
       this.badge.textContent = this.messageCount;
       this.badge.classList.remove('hidden');
@@ -208,12 +252,17 @@ class ChatSidebar {
    */
   showTypingIndicator() {
     const indicatorEl = document.createElement('div');
-    indicatorEl.className = 'chat-message assistant';
+    indicatorEl.className = 'chat-message assistant typing';
     indicatorEl.innerHTML = `
+      <div class="chat-avatar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+        </svg>
+      </div>
       <div class="chat-typing-indicator">
-        <div class="chat-typing-dot"></div>
-        <div class="chat-typing-dot"></div>
-        <div class="chat-typing-dot"></div>
+        <span class="chat-typing-dot"></span>
+        <span class="chat-typing-dot"></span>
+        <span class="chat-typing-dot"></span>
       </div>
     `;
     this.messagesContainer.appendChild(indicatorEl);
@@ -224,9 +273,9 @@ class ChatSidebar {
    * Remove typing indicator
    */
   removeTypingIndicator() {
-    const indicator = this.messagesContainer.querySelector('.chat-typing-indicator');
+    const indicator = this.messagesContainer.querySelector('.chat-message.typing');
     if (indicator) {
-      indicator.closest('.chat-message').remove();
+      indicator.remove();
     }
   }
 
@@ -234,17 +283,19 @@ class ChatSidebar {
    * Scroll to bottom of messages
    */
   scrollToBottom() {
-    this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+    requestAnimationFrame(() => {
+      this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+    });
   }
 
   /**
    * Toggle sidebar visibility
    */
   toggle() {
-    if (this.sidebar.classList.contains('hidden')) {
-      this.open();
-    } else {
+    if (this.isOpen) {
       this.close();
+    } else {
+      this.open();
     }
   }
 
@@ -252,20 +303,35 @@ class ChatSidebar {
    * Open sidebar
    */
   open() {
-    this.sidebar.classList.remove('hidden');
+    this.isOpen = true;
+    this.sidebar.classList.add('is-open');
+    this.overlay.classList.add('is-visible');
     this.toggleBtn.classList.add('hidden');
     this.badge.classList.add('hidden');
     this.messageCount = 0;
-    this.inputField.focus();
+    
+    // Focus input after animation
+    setTimeout(() => {
+      this.inputField.focus();
+    }, 300);
+    
     this.scrollToBottom();
+    
+    // Prevent body scroll on mobile
+    document.body.style.overflow = 'hidden';
   }
 
   /**
    * Close sidebar
    */
   close() {
-    this.sidebar.classList.add('hidden');
+    this.isOpen = false;
+    this.sidebar.classList.remove('is-open');
+    this.overlay.classList.remove('is-visible');
     this.toggleBtn.classList.remove('hidden');
+    
+    // Restore body scroll
+    document.body.style.overflow = '';
   }
 
   /**

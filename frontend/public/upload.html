@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Upload your photo for clinical-grade AI skin analysis">
+  <meta name="description" content="Upload your photo for clinical-grade AI skin analysis with Epiqora">
   <meta name="theme-color" content="#ffffff">
-  <title>Upload Photo | Dermora</title>
+  <title>Upload Photo | Epiqora</title>
 
   <!-- Premium Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,26 +29,28 @@
   <main class="main">
     <div class="container">
       
-      <!-- Cursive & Minimal Stepper -->
+      <!-- Refined Progress Stepper -->
       <div class="stepper-container">
-        <div class="stepper-line-bg"></div>
-        <div class="stepper-line-progress" id="stepProgress"></div>
+        <div class="stepper-track">
+          <div class="stepper-line-bg"></div>
+          <div class="stepper-line-progress" id="stepProgress"></div>
+        </div>
         <div class="stepper">
           <div class="step active" id="step1">
             <div class="step-circle"><i class="fas fa-camera"></i></div>
-            <div class="step-cursive">Photo</div>
+            <div class="step-label">Photo</div>
           </div>
           <div class="step" id="step2">
             <div class="step-circle">2</div>
-            <div class="step-cursive">Analysis</div>
+            <div class="step-label">Analysis</div>
           </div>
           <div class="step" id="step3">
             <div class="step-circle">3</div>
-            <div class="step-cursive">Details</div>
+            <div class="step-label">Details</div>
           </div>
           <div class="step" id="step4">
             <div class="step-circle"><i class="fas fa-file-medical"></i></div>
-            <div class="step-cursive">Report</div>
+            <div class="step-label">Report</div>
           </div>
         </div>
       </div>
@@ -65,7 +67,7 @@
         <div class="upload-options" id="viewSelection">
           <label for="fileInput" class="option-card">
             <div class="icon-circle"><i class="fas fa-image"></i></div>
-            <div>
+            <div class="option-content">
               <div class="option-text">Device Gallery</div>
               <div class="option-sub">Upload an existing photo</div>
             </div>
@@ -74,9 +76,9 @@
 
           <div class="divider">OR</div>
 
-          <button class="option-card" id="btnOpenCamera" style="border: 2px dashed #CBD5E1; width:100%; font-family:inherit; background:var(--color-bg-base);">
-            <div class="icon-circle" style="background: var(--color-brand-blue); color: var(--color-surface);"><i class="fas fa-camera-retro"></i></div>
-            <div>
+          <button class="option-card" id="btnOpenCamera" type="button">
+            <div class="icon-circle icon-circle-primary"><i class="fas fa-camera-retro"></i></div>
+            <div class="option-content">
               <div class="option-text">Launch Camera</div>
               <div class="option-sub">Take a live photo</div>
             </div>
@@ -90,8 +92,8 @@
             <div class="camera-viewfinder"></div>
           </div>
           <div class="btn-group">
-            <button class="btn btn-secondary" id="btnCancelCamera"><i class="fas fa-arrow-left"></i> Back</button>
-            <button class="btn btn-primary" id="btnCapture"><i class="fas fa-crosshairs"></i> Capture Image</button>
+            <button class="btn btn-secondary" id="btnCancelCamera" type="button"><i class="fas fa-arrow-left"></i> Back</button>
+            <button class="btn btn-primary" id="btnCapture" type="button"><i class="fas fa-crosshairs"></i> Capture Image</button>
           </div>
         </div>
 
@@ -100,7 +102,7 @@
           <div class="media-box" id="previewBox">
             <img id="previewImage" alt="Captured Face">
             
-            <!-- The Advanced HUD Scanner with Tail -->
+            <!-- Advanced HUD Scanner -->
             <div class="hud-scanner" id="hudScanner">
               <div class="hud-grid"></div>
               <div class="hud-brackets">
@@ -111,23 +113,26 @@
           </div>
           
           <div class="feedback-box feedback-loading" id="statusLoading">
-            <i class="fas fa-circle-notch fa-spin"></i> Running Biometrics <span class="loading-cursive">Analyzing...</span>
+            <i class="fas fa-circle-notch fa-spin"></i> 
+            <span>Running Biometrics</span>
+            <span class="loading-cursive">Analyzing...</span>
           </div>
           
           <div class="feedback-box" id="statusResult"></div>
 
           <div class="btn-group">
-            <button class="btn btn-secondary" id="btnRetake"><i class="fas fa-redo"></i> Retake</button>
-            <button class="btn btn-blue" id="btnAnalyze" disabled><i class="fas fa-magic"></i> Generate Report</button>
+            <button class="btn btn-secondary" id="btnRetake" type="button"><i class="fas fa-redo"></i> Retake</button>
+            <button class="btn btn-blue" id="btnAnalyze" type="button" disabled><i class="fas fa-magic"></i> Generate Report</button>
           </div>
         </div>
 
       </div>
 
-      <!-- The Perfected Guidelines Section -->
+      <!-- Guidelines Section -->
       <div class="guidelines-section">
         <div class="guidelines-header">
-          <h3 class="guidelines-title"><span class="text-cursive-gold">For the Best Results</span><br>Preparation Guide</h3>
+          <span class="text-cursive-gold">For the Best Results</span>
+          <h3 class="guidelines-title">Preparation Guide</h3>
         </div>
         <div class="guidelines-grid">
           <div class="guide-card">
@@ -170,5 +175,6 @@
   <script src="js/core/routerGuard.js"></script>
   <script src="js/pages/upload.js"></script>
   <script src="js/components/header.js"></script>
+  <script src="js/components/footer.js"></script>
 </body>
 </html>

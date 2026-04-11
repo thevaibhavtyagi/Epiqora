@@ -3,22 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Your personalized skincare report from Dermora">
+  <meta name="description" content="Your personalized skincare report from Epiqora">
   <meta name="theme-color" content="#F8FAFC">
-  <title>Clinical Report | Dermora</title>
+  <title>Clinical Report | Epiqora</title>
 
-  <!-- Premium Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Modern Icon Library -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-  <!-- HTML2Canvas for High-Res PNG Generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-  <!-- Core Stylesheets (Absolute paths) -->
   <link rel="stylesheet" href="/styles/main.css">
   <link rel="stylesheet" href="/styles/report.css">
 </head>
@@ -26,63 +21,48 @@
   
   <div class="bg-ambient"></div>
 
-  <!-- Header handled by system architecture -->
-  <!-- 
-  <header class="header"> ... </header> 
-  -->
-
-  <main class="main" style="padding-top: 120px; padding-bottom: 80px;">
+  <main class="main">
     <div class="container">
       
-      <!-- Cursive & Minimal Stepper (Step 4 Active) -->
+      <!-- Progress Stepper -->
       <div class="stepper-container">
-        <div class="stepper-line-bg"></div>
-        <div class="stepper-line-progress" style="width: 100%;"></div>
+        <div class="stepper-track">
+          <div class="stepper-progress" style="width: 100%;"></div>
+        </div>
         <div class="stepper">
-          <div class="step completed" id="step1">
-            <div class="step-circle">
-              <i class="fas fa-check"></i>
-            </div>
-            <div class="step-cursive">Photo</div>
+          <div class="step completed">
+            <div class="step-circle"><i class="fas fa-check"></i></div>
+            <span class="step-label">Photo</span>
           </div>
-          <div class="step completed" id="step2">
-            <div class="step-circle">
-              <i class="fas fa-check"></i>
-            </div>
-            <div class="step-cursive">Analysis</div>
+          <div class="step completed">
+            <div class="step-circle"><i class="fas fa-check"></i></div>
+            <span class="step-label">Analysis</span>
           </div>
-          <div class="step completed" id="step3">
-            <div class="step-circle">
-              <i class="fas fa-check"></i>
-            </div>
-            <div class="step-cursive">Consult</div>
+          <div class="step completed">
+            <div class="step-circle"><i class="fas fa-check"></i></div>
+            <span class="step-label">Consult</span>
           </div>
-          <div class="step active" id="step4">
-            <div class="step-circle pulse-active">
-              <i class="fas fa-file-medical"></i>
-            </div>
-            <div class="step-cursive">Report</div>
+          <div class="step active">
+            <div class="step-circle"><i class="fas fa-file-medical"></i></div>
+            <span class="step-label">Report</span>
           </div>
         </div>
       </div>
 
-      <!-- Main Report Container -->
       <div class="report-wrapper">
         
-        <!-- State 1: Premium Neural Loading -->
+        <!-- Loading State -->
         <div class="report-loading active" id="reportLoading">
           <div class="neural-core">
             <div class="core-ring ring-outer"></div>
             <div class="core-ring ring-inner"></div>
-            <div class="core-icon">
-              <i class="fas fa-file-signature"></i>
-            </div>
+            <div class="core-icon"><i class="fas fa-file-signature"></i></div>
           </div>
           <h2 class="processing-title">Finalizing Protocol</h2>
           <p class="processing-subtitle" id="loadingMessage">Generating your clinical-grade skincare regimen...</p>
         </div>
 
-        <!-- State 2: The A4 Printable Report -->
+        <!-- Report Content -->
         <div class="report-content hidden" id="reportContent">
           
           <div class="report-header-text">
@@ -91,75 +71,81 @@
             <p class="report-subtitle">Your personalized, AI-generated treatment plan is ready. Save it for your records.</p>
           </div>
 
-          <!-- THE A4 CANVAS ENGINE TARGET -->
+          <!-- A4 Printable Report -->
           <div class="a4-template" id="printableReport">
             
-            <!-- Diagonal Watermark -->
-            <div class="watermark-bg">Dermora</div>
+            <div class="watermark-bg">Epiqora</div>
             
-            <!-- Document Header -->
-            <div class="doc-header">
-              <div class="doc-brand">
-                <i class="fas fa-spa"></i> Dermora Clinical
-              </div>
-              <div class="doc-date" id="reportDate">Date: --</div>
-            </div>
+            <div class="report-content-layer">
+              <header class="report-header">
+                <div class="header-brand">
+                  <span class="brand-logo">Epiqora</span>
+                  <!-- <span class="brand-tag">Clinical</span> -->
+                </div>
+                <div class="header-patient">
+                  <p class="patient-label">Prepared For</p>
+                  <p class="patient-name">Epiqora User</p>
+                  <p class="patient-date" id="reportDate">Date: --</p>
+                </div>
+              </header>
 
-            <!-- Patient Biometrics Block -->
-            <div class="patient-profile">
-              <div class="patient-image">
-                <img id="patientPhoto" src="" alt="Patient Biometrics">
-              </div>
-              <div class="patient-stats">
-                <h2 class="patient-title">Biometric Profile</h2>
-                <div class="stat-grid">
-                  <div class="stat-box">
-                    <span class="stat-label">Skin Health Index</span>
-                    <span class="stat-value text-blue" id="patientScore">--</span>
+              <!-- Biometrics Banner -->
+              <div class="biometrics-banner">
+                <div class="avatar-circle">
+                  <img id="patientPhoto" alt="User Profile" style="display: none;">
+                  <i class="fas fa-user" id="patientIcon"></i>
+                </div>
+                <div class="stats-grid">
+                  <div class="stat-item">
+                    <p class="stat-label">Health Index</p>
+                    <p class="stat-value" id="patientScore">--<span class="stat-max">/100</span></p>
                   </div>
-                  <div class="stat-box">
-                    <span class="stat-label">Primary Skin Type</span>
-                    <span class="stat-value" id="patientType">--</span>
+                  <div class="stat-item">
+                    <p class="stat-label">Primary State</p>
+                    <p class="stat-value-text" id="patientType">--</p>
                   </div>
-                  <div class="stat-box">
-                    <span class="stat-label">AI Confidence</span>
-                    <span class="stat-value">High</span>
+                  <div class="stat-item">
+                    <p class="stat-label">AI Confidence</p>
+                    <p class="stat-value-text text-emerald">High</p>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Dynamic 2-Column Content Injected Here by JS -->
-            <div class="doc-body" id="dynamicReportBody">
-              <!-- Routines and Tips go here via grid layout -->
-            </div>
+              <!-- Dynamic Report Body -->
+              <div id="dynamicReportBody" class="dynamic-body-container"></div>
 
-            <!-- Footer -->
-            <div class="doc-footer">
-              <p>This clinical protocol was generated by the Dermora AI Engine. For informational purposes only.</p>
-              <div class="signature">Dermora</div>
+              <!-- Footer -->
+              <footer class="report-footer">
+                <div class="footer-disclaimer-wrapper">
+                  <p class="footer-disclaimer-label">
+                    <i class="fas fa-info-circle"></i> Clinical Disclaimer
+                  </p>
+                  <p class="footer-disclaimer-text">
+                    This protocol was formulated by the Epiqora AI Clinical Engine based on visual mapping and user-provided inputs. For informational purposes only. Do not replace professional medical advice.
+                  </p>
+                </div>
+                <div class="signature">Epiqora</div>
+              </footer>
             </div>
           </div>
 
-          <!-- Actions -->
+          <!-- Action Buttons -->
           <div class="report-actions">
-            <button class="premium-btn btn-secondary" id="newAnalysisButton">
+            <button class="btn btn-secondary" id="newAnalysisButton">
               <i class="fas fa-redo"></i> Start New Analysis
             </button>
-            <button class="premium-btn btn-primary" id="downloadPngButton">
+            <button class="btn btn-primary" id="downloadPngButton">
               <i class="fas fa-image"></i> Download High-Res PNG
             </button>
           </div>
         </div>
 
-        <!-- State 3: Error Handling -->
+        <!-- Error State -->
         <div class="report-error hidden" id="reportError">
-          <div class="error-icon">
-            <i class="fas fa-exclamation-triangle"></i>
-          </div>
+          <div class="error-icon"><i class="fas fa-exclamation-triangle"></i></div>
           <h3 class="error-title">Generation Interrupted</h3>
           <p class="error-message" id="errorMessage">Our engine encountered an anomaly while writing your report.</p>
-          <button class="premium-btn btn-primary" id="retryButton">
+          <button class="btn btn-primary" id="retryButton">
             <i class="fas fa-redo"></i> Retry
           </button>
         </div>
@@ -168,15 +154,18 @@
     </div>
   </main>
 
-  <!-- SLIDING DERMAI CHAT SIDEBAR -->
+  <!-- AI Chat Trigger -->
   <button class="chat-trigger-btn" id="chatTriggerBtn">
-    <i class="fas fa-comments"></i> Ask DermAI
+    <i class="fas fa-comments"></i>
+    <span>Ask EpiqAI</span>
   </button>
 
+  <!-- AI Chat Sidebar -->
   <div class="chat-sidebar" id="chatSidebar">
     <div class="chat-header">
       <div class="chat-header-title">
-        <i class="fas fa-robot"></i> DermAI Assistant
+        <i class="fas fa-robot"></i>
+        <span>EpiqAI Assistant</span>
       </div>
       <button class="close-chat-btn" id="closeChatBtn">
         <i class="fas fa-times"></i>
@@ -185,7 +174,7 @@
     
     <div class="chat-messages" id="chatMessages">
       <div class="message ai-message">
-        Hello! I'm DermAI. I formulated your clinical protocol. Do you have any questions about your routines or recommended products?
+        Hello! I'm EpiqAI. I formulated your clinical protocol. Do you have any questions about your routines or recommended products?
       </div>
     </div>
     
@@ -197,11 +186,12 @@
     </div>
   </div>
 
-  <!-- Absolute Path Scripts -->
+  <!-- Core Scripts -->
   <script src="/js/core/api.js"></script>
   <script src="/js/core/storage.js"></script>
   <script src="/js/core/routerGuard.js"></script>
   <script src="/js/pages/report.js"></script>
   <script src="/js/components/header.js"></script>
+  <script src="/js/components/footer.js"></script>
 </body>
 </html>

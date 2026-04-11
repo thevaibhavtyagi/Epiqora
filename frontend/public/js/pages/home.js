@@ -1,5 +1,5 @@
 /**
- * Dermora - Home Page Script
+ * Epiqora - Home Page Script
  * Meticulously formatted logic for the landing page interactions.
  */
 

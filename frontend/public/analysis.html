@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="View your Dermora clinical AI skin analysis results">
+  <meta name="description" content="View your Epiqora clinical AI skin analysis results">
   <meta name="theme-color" content="#F8FAFC">
-  <title>Clinical Analysis | Dermora</title>
+  <title>Clinical Analysis | Epiqora</title>
 
   <!-- Premium Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,7 +18,7 @@
   <!-- Face API for Frontend Biometric Mapping -->
   <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 
-  <!-- Core Stylesheets (Absolute paths) -->
+  <!-- Core Stylesheets -->
   <link rel="stylesheet" href="/styles/main.css">
   <link rel="stylesheet" href="/styles/analysis.css">
 </head>
@@ -26,15 +26,10 @@
   
   <div class="bg-ambient"></div>
 
-  <!-- Header is handled by your system architecture -->
-  <!-- 
-  <header class="header"> ... </header> 
-  -->
-
   <main class="main" style="padding-top: 120px; padding-bottom: 80px;">
     <div class="container">
       
-      <!-- Cursive & Minimal Stepper -->
+      <!-- Progress Stepper -->
       <div class="stepper-container">
         <div class="stepper-line-bg"></div>
         <div class="stepper-line-progress" style="width: 33%;"></div>
@@ -67,7 +62,7 @@
       <!-- Main Analysis Container -->
       <div class="analysis-card">
         
-        <!-- State 1: Premium Neural Processing Animation -->
+        <!-- State 1: Neural Processing Animation -->
         <div class="analysis-loading active" id="analysisLoading">
           <div class="neural-core">
             <div class="core-ring ring-outer"></div>
@@ -92,10 +87,10 @@
           </div>
         </div>
 
-        <!-- State 2: High-End Interactive Results Dashboard -->
+        <!-- State 2: Results Dashboard -->
         <div class="analysis-results hidden" id="analysisResults">
           <div class="results-header">
-            <span class="text-cursive-gold">Diagnostic Complete</span>
+            <span class="text-cursive-gold">Initial AI Analysis</span>
             <h1 class="results-title">Your Clinical Profile</h1>
             <p class="results-subtitle">Review your AI-mapped biometrics before we calibrate your personalized routine.</p>
           </div>
@@ -103,16 +98,15 @@
           <!-- Split Layout for Image & Metrics -->
           <div class="results-dashboard">
             
-            <!-- Left Panel: Interactive Face Map with SVG HUD Overlay -->
+            <!-- Left Panel: Interactive Face Map -->
             <div class="diagnostic-image-panel">
               <img id="analyzedImage" alt="User Biometric Map" src="" crossorigin="anonymous">
               
               <div class="scanning-overlay"></div>
               
-              <!-- Responsive SVG Canvas for Heatmaps, Lines, and Badges -->
+              <!-- SVG Canvas for Heatmaps -->
               <svg id="facialOverlay" class="facial-overlay-svg" preserveAspectRatio="xMidYMid slice">
                 <defs>
-                  <!-- The Gaussian Blur filter creates the smooth, organic heatmap look -->
                   <filter id="heatmapGlow" x="-50%" y="-50%" width="200%" height="200%">
                     <feGaussianBlur stdDeviation="20" result="blur" />
                     <feComposite in="SourceGraphic" in2="blur" operator="over" />
@@ -144,7 +138,7 @@
                 </div>
               </div>
 
-              <!-- Granular Metrics Grid -->
+              <!-- Metrics Grid -->
               <div class="results-grid">
                 <div class="result-card">
                   <div class="result-icon"><i class="fas fa-tint"></i></div>
@@ -219,11 +213,12 @@
     </div>
   </main>
 
-  <!-- Absolute Path Scripts -->
+  <!-- Scripts -->
   <script src="/js/core/api.js"></script>
   <script src="/js/core/storage.js"></script>
   <script src="/js/core/routerGuard.js"></script>
   <script src="/js/pages/analysis.js"></script>
   <script src="/js/components/header.js"></script>
+  <script src="/js/components/footer.js"></script>
 </body>
 </html>

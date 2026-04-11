@@ -42,8 +42,8 @@ Generate questions in this exact JSON format:
     {
       "id": 1,
       "question": "string",
-      "type": "single_choice|multiple_choice|text",
-      "options": ["option1", "option2"] or null if text type,
+      "type": "single_choice|multiple_choice",
+      "options": ["option1", "option2"],
       "required": true
     }
   ]

@@ -14,31 +14,77 @@ A complete AI-powered skin analysis application with real-time face detection, p
 ## Project Structure
 
 ```
-.
-├── backend/                 # Express.js server
+AI_PROJECT/
+├── backend/                          # Express.js server
+│   ├── node_modules/
 │   ├── src/
-│   │   ├── routes/         # API endpoints
-│   │   ├── controllers/    # Route handlers
-│   │   ├── services/       # Business logic
-│   │   ├── middleware/     # Express middleware
-│   │   └── config/         # Configuration
-│   ├── package.json
+│   │   ├── config/
+│   │   │   └── environment.js
+│   │   ├── controllers/
+│   │   │   ├── analyzeController.js
+│   │   │   ├── chatController.js
+│   │   │   ├── healthController.js
+│   │   │   ├── questionsController.js
+│   │   │   └── reportController.js
+│   │   ├── middleware/
+│   │   │   ├── cors.js
+│   │   │   └── errorHandler.js
+│   │   ├── routes/
+│   │   │   ├── analyze.js
+│   │   │   ├── chat.js
+│   │   │   ├── health.js
+│   │   │   ├── questions.js
+│   │   │   └── report.js
+│   │   ├── services/
+│   │   │   ├── chatService.js
+│   │   │   ├── geminiService.js
+│   │   │   ├── imageValidator.js
+│   │   │   ├── questionsService.js
+│   │   │   └── reportService.js
+│   │   └── server.js
+│   ├── .env
 │   ├── .env.example
+│   ├── package.json
+│   ├── package-lock.json
 │   └── README.md
 │
-├── frontend/               # Vanilla HTML/CSS/JS
-│   ├── index.html         # Main page
-│   ├── js/
-│   │   └── main.js        # All JavaScript logic
-│   ├── styles/
-│   │   └── main.css       # All styling
-│   ├── README.md
-│   └── .env.example
+├── frontend/                         # Vanilla HTML/CSS/JS
+│   ├── public/
+│   │   ├── js/
+│   │   │   ├── components/
+│   │   │   │   ├── chat-sidebar.html
+│   │   │   │   ├── chat-sidebar.js
+│   │   │   │   └── header.js
+│   │   │   ├── core/
+│   │   │   │   ├── api.js
+│   │   │   │   ├── routerGuard.js
+│   │   │   │   └── storage.js
+│   │   │   └── pages/
+│   │   │       ├── analysis.js
+│   │   │       ├── home.js
+│   │   │       ├── questions.js
+│   │   │       ├── report.js
+│   │   │       └── upload.js
+│   │   ├── styles/
+│   │   │   ├── analysis.css
+│   │   │   ├── chat.css
+│   │   │   ├── main.css
+│   │   │   ├── questions.css
+│   │   │   ├── report.css
+│   │   │   └── upload.css
+│   │   ├── analysis.html
+│   │   ├── index.html
+│   │   ├── questions.html
+│   │   ├── report.html
+│   │   └── upload.html
+│   └── README.md
 │
-├── LOCAL_SETUP_GUIDE.md   # Complete setup instructions
-├── SETUP_CHECKLIST.md     # Step-by-step checklist
-├── YOUR_SETUP_INSTRUCTIONS.txt  # Quick reference
-└── README_SETUP.md        # Setup overview
+├── .gitignore
+├── LOCAL_SETUP_GUIDE.md
+├── README.md
+├── README_SETUP.md
+├── SETUP_CHECKLIST.md
+└── YOUR_SETUP_INSTRUCTIONS.txt
 ```
 
 ## Quick Start
@@ -97,13 +143,14 @@ http://localhost:3000
 - **Backend**: Express.js, Google Generative AI, Multer
 - **Frontend**: Vanilla JavaScript, HTML5, CSS3
 - **Face Detection**: face-api.js
-- **AI**: Google Gemini 1.5 Flash
+- **AI**: Google Gemini 2.5 Flash
 
 ## Documentation
 
 - `LOCAL_SETUP_GUIDE.md` - Complete setup with troubleshooting
 - `SETUP_CHECKLIST.md` - Step-by-step verification checklist
 - `YOUR_SETUP_INSTRUCTIONS.txt` - Quick reference guide
+- `README_SETUP.md` - Setup overview
 - `backend/README.md` - Backend documentation
 - `frontend/README.md` - Frontend documentation
 
@@ -114,7 +161,3 @@ For issues or questions:
 2. Verify `.env` file is created correctly
 3. Ensure backend is running on port 5000
 4. Check browser console (F12) for errors
-
-## License
-
-MIT

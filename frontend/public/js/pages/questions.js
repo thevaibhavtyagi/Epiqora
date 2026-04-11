@@ -1,7 +1,7 @@
 /**
- * Dermora Pro - Questions Page Script
+ * Epiqora - Questions Page Script
  * Handles dynamic question loading, validation, and answer submission.
- * Immediately routes to the Report page for backend processing.
+ * Routes to Report page for final processing.
  */
 
 (function() {
@@ -33,8 +33,9 @@
     },
 
     async init() {
-      console.log('[Dermora] Initializing questions module');
+      console.log('[Epiqora] Initializing questions module');
       
+      // Guard page access
       if (typeof RouterGuard !== 'undefined' && typeof RouterGuard.guardPage === 'function') {
         try { RouterGuard.guardPage(); } catch(e) {}
       }
@@ -44,10 +45,21 @@
     },
 
     switchView(viewName) {
-      if(this.elements.loading) { this.elements.loading.classList.remove('active'); this.elements.loading.style.display = 'none'; }
-      if(this.elements.form) { this.elements.form.classList.remove('active'); this.elements.form.classList.add('hidden'); }
-      if(this.elements.error) { this.elements.error.classList.remove('active'); this.elements.error.classList.add('hidden'); }
+      // Hide all views
+      if (this.elements.loading) {
+        this.elements.loading.classList.remove('active');
+        this.elements.loading.style.display = 'none';
+      }
+      if (this.elements.form) {
+        this.elements.form.classList.remove('active');
+        this.elements.form.classList.add('hidden');
+      }
+      if (this.elements.error) {
+        this.elements.error.classList.remove('active');
+        this.elements.error.classList.add('hidden');
+      }
 
+      // Show requested view
       if (viewName === 'loading' && this.elements.loading) {
         this.elements.loading.classList.add('active');
         this.elements.loading.style.display = 'block';
@@ -89,7 +101,7 @@
             questionsArray = parsed;
           }
         } catch (parseError) {
-          console.error('[Dermora] Failed to parse AI questions schema:', parseError);
+          console.error('[Epiqora] Failed to parse AI questions schema:', parseError);
         }
 
         this.state.questions = questionsArray;
@@ -98,6 +110,7 @@
           throw new Error('Invalid format received from AI engine. Retrying recommended.');
         }
         
+        // Initialize answers object
         this.state.answers = {};
         this.state.questions.forEach(q => {
           this.state.answers[q.id] = null;
@@ -109,7 +122,7 @@
         this.displayCurrentQuestion();
         
       } catch (error) {
-        console.error('[Dermora] Diagnostic load failure:', error);
+        console.error('[Epiqora] Diagnostic load failure:', error);
         this.state.hasError = true;
         this.showError(error.message || 'Failed to sync with clinical engine.');
       }
@@ -120,6 +133,7 @@
       if (!question) return;
 
       this.elements.container.innerHTML = '';
+      
       const questionBlock = document.createElement('div');
       questionBlock.className = 'question-block';
 
@@ -128,12 +142,22 @@
       label.textContent = question.question;
       questionBlock.appendChild(label);
 
+      // Render based on question type
       switch (question.type) {
-        case 'single_choice': this.renderSingleChoice(questionBlock, question); break;
-        case 'multiple_choice': this.renderMultipleChoice(questionBlock, question); break;
-        case 'text': this.renderTextInput(questionBlock, question); break;
-        case 'range': this.renderRangeSlider(questionBlock, question); break;
-        default: this.renderSingleChoice(questionBlock, question);
+        case 'single_choice':
+          this.renderSingleChoice(questionBlock, question);
+          break;
+        case 'multiple_choice':
+          this.renderMultipleChoice(questionBlock, question);
+          break;
+        case 'text':
+          this.renderTextInput(questionBlock, question);
+          break;
+        case 'range':
+          this.renderRangeSlider(questionBlock, question);
+          break;
+        default:
+          this.renderSingleChoice(questionBlock, question);
       }
 
       this.elements.container.appendChild(questionBlock);
@@ -302,10 +326,8 @@
       }
     },
 
-    // ==========================================
-    // CRITICAL FIX: Instant Routing to /report
-    // ==========================================
     handleSubmit() {
+      // Save answers
       if (typeof Storage !== 'undefined' && typeof Storage.saveAnswers === 'function') {
         Storage.saveAnswers(this.state.answers);
       }
@@ -313,13 +335,14 @@
       this.elements.submitButton.disabled = true;
       this.elements.submitButton.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Finalizing Data...';
 
-      // Instantly route to Report Page so user sees the premium Neural Loading screen
+      // Route to Report page
       setTimeout(() => {
-        window.location.href = '/report'; 
+        window.location.href = '/report';
       }, 400);
     },
 
     handleSkip() {
+      // Save empty/partial answers
       if (typeof Storage !== 'undefined' && typeof Storage.saveAnswers === 'function') {
         Storage.saveAnswers(this.state.answers);
       }
@@ -338,15 +361,23 @@
     },
 
     setupEventListeners() {
-      if(this.elements.nextButton) this.elements.nextButton.addEventListener('click', () => this.handleNext());
-      if(this.elements.backButton) this.elements.backButton.addEventListener('click', () => this.handleBack());
-      if(this.elements.submitButton) this.elements.submitButton.addEventListener('click', () => this.handleSubmit());
-      if(this.elements.skipButton) this.elements.skipButton.addEventListener('click', () => this.handleSkip());
-      
-      if(this.elements.retryButton) {
+      if (this.elements.nextButton) {
+        this.elements.nextButton.addEventListener('click', () => this.handleNext());
+      }
+      if (this.elements.backButton) {
+        this.elements.backButton.addEventListener('click', () => this.handleBack());
+      }
+      if (this.elements.submitButton) {
+        this.elements.submitButton.addEventListener('click', () => this.handleSubmit());
+      }
+      if (this.elements.skipButton) {
+        this.elements.skipButton.addEventListener('click', () => this.handleSkip());
+      }
+      if (this.elements.retryButton) {
         this.elements.retryButton.addEventListener('click', () => location.reload());
       }
 
+      // Keyboard navigation
       document.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && !this.state.isLoading && !this.state.hasError) {
           const isLast = this.state.currentQuestionIndex === this.state.questions.length - 1;
@@ -360,6 +391,7 @@
     },
   };
 
+  // Initialize on DOM ready
   document.addEventListener('DOMContentLoaded', () => {
     QuestionsPage.init();
   });

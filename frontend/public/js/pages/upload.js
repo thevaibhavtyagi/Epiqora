@@ -1,72 +1,111 @@
 /**
- * Dermora Pro - Final Perfected Upload Logic
- * Secured via IIFE to prevent variable collisions with core project files.
+ * Epiqora - Upload Page Logic
+ * Handles image capture, validation, and biometric scanning
+ * Optimized for smooth animations and reliable state management
  */
 
 (function() {
   'use strict';
 
-  // App State safely enclosed
+  // Application State
   const AppState = {
     stream: null,
     imageData: null,
-    modelsLoaded: false
+    modelsLoaded: false,
+    isScanning: false
   };
 
-  // DOM Elements gracefully mapped
+  // DOM Elements
   const DOM = {
     views: {
-      selection: document.getElementById('viewSelection'),
-      camera: document.getElementById('viewCamera'),
-      preview: document.getElementById('viewPreview')
+      selection: null,
+      camera: null,
+      preview: null
     },
     camera: {
-      video: document.getElementById('cameraVideo'),
-      btnOpen: document.getElementById('btnOpenCamera'),
-      btnCancel: document.getElementById('btnCancelCamera'),
-      btnCapture: document.getElementById('btnCapture')
+      video: null,
+      btnOpen: null,
+      btnCancel: null,
+      btnCapture: null
     },
     upload: {
-      input: document.getElementById('fileInput'),
-      btnRetake: document.getElementById('btnRetake'),
-      btnAnalyze: document.getElementById('btnAnalyze')
+      input: null,
+      btnRetake: null,
+      btnAnalyze: null
     },
     preview: {
-      image: document.getElementById('previewImage'),
-      scanner: document.getElementById('hudScanner')
+      image: null,
+      scanner: null
     },
     status: {
-      loading: document.getElementById('statusLoading'),
-      result: document.getElementById('statusResult')
+      loading: null,
+      result: null
     },
     stepper: {
-      progress: document.getElementById('stepProgress'),
-      step1: document.getElementById('step1'),
-      step2: document.getElementById('step2')
+      progress: null,
+      step1: null,
+      step2: null
     }
   };
 
-  // Wait for the HTML structure to fully load before attaching events
+  // Initialize when DOM is ready
   document.addEventListener('DOMContentLoaded', function() {
+    initializeDOM();
     bindUIEvents();
     preloadAIModels();
   });
 
-  function bindUIEvents() {
-    if (DOM.upload.input) DOM.upload.input.addEventListener('change', handleFileSelect);
-    if (DOM.camera.btnOpen) DOM.camera.btnOpen.addEventListener('click', initiateCamera);
-    if (DOM.camera.btnCancel) DOM.camera.btnCancel.addEventListener('click', resetToHomeView);
-    if (DOM.camera.btnCapture) DOM.camera.btnCapture.addEventListener('click', captureLivePhoto);
-    if (DOM.upload.btnRetake) DOM.upload.btnRetake.addEventListener('click', resetToHomeView);
-    if (DOM.upload.btnAnalyze) DOM.upload.btnAnalyze.addEventListener('click', submitToAnalysis);
+  function initializeDOM() {
+    DOM.views.selection = document.getElementById('viewSelection');
+    DOM.views.camera = document.getElementById('viewCamera');
+    DOM.views.preview = document.getElementById('viewPreview');
+    
+    DOM.camera.video = document.getElementById('cameraVideo');
+    DOM.camera.btnOpen = document.getElementById('btnOpenCamera');
+    DOM.camera.btnCancel = document.getElementById('btnCancelCamera');
+    DOM.camera.btnCapture = document.getElementById('btnCapture');
+    
+    DOM.upload.input = document.getElementById('fileInput');
+    DOM.upload.btnRetake = document.getElementById('btnRetake');
+    DOM.upload.btnAnalyze = document.getElementById('btnAnalyze');
+    
+    DOM.preview.image = document.getElementById('previewImage');
+    DOM.preview.scanner = document.getElementById('hudScanner');
+    
+    DOM.status.loading = document.getElementById('statusLoading');
+    DOM.status.result = document.getElementById('statusResult');
+    
+    DOM.stepper.progress = document.getElementById('stepProgress');
+    DOM.stepper.step1 = document.getElementById('step1');
+    DOM.stepper.step2 = document.getElementById('step2');
   }
 
-  // Pre-load external FaceAPI models securely
+  function bindUIEvents() {
+    if (DOM.upload.input) {
+      DOM.upload.input.addEventListener('change', handleFileSelect);
+    }
+    if (DOM.camera.btnOpen) {
+      DOM.camera.btnOpen.addEventListener('click', initiateCamera);
+    }
+    if (DOM.camera.btnCancel) {
+      DOM.camera.btnCancel.addEventListener('click', resetToHomeView);
+    }
+    if (DOM.camera.btnCapture) {
+      DOM.camera.btnCapture.addEventListener('click', captureLivePhoto);
+    }
+    if (DOM.upload.btnRetake) {
+      DOM.upload.btnRetake.addEventListener('click', resetToHomeView);
+    }
+    if (DOM.upload.btnAnalyze) {
+      DOM.upload.btnAnalyze.addEventListener('click', submitToAnalysis);
+    }
+  }
+
+  // Preload FaceAPI models
   async function preloadAIModels() {
     try {
       const MODEL_URL = 'https://vladmandic.github.io/face-api/model/';
       
-      // Delay slightly if script hasn't fully executed over the network
       if (typeof faceapi === 'undefined') {
         return setTimeout(preloadAIModels, 500);
       }
@@ -77,85 +116,93 @@
       ]);
       
       AppState.modelsLoaded = true;
-    } catch (error) { 
-      console.warn('Dermora: AI Models operating in degraded fallback mode.'); 
+    } catch (error) {
+      console.warn('Epiqora: AI Models in fallback mode.');
     }
   }
 
-  // Handle visual switching between modes cleanly
+  // View Management
   function switchActiveView(viewKey) {
-    Object.keys(DOM.views).forEach(function(key) { 
+    Object.keys(DOM.views).forEach(function(key) {
       const viewNode = DOM.views[key];
       if (viewNode) {
-        viewNode.classList.remove('active'); 
-        viewNode.style.display = 'none'; 
+        viewNode.classList.remove('active');
+        viewNode.style.display = 'none';
       }
     });
     
     const targetNode = DOM.views[viewKey];
     if (targetNode) {
-      // Retain CSS grid structure for selection card layout
       targetNode.style.display = viewKey === 'selection' ? 'grid' : 'flex';
       
-      // Minor timeout allows display property to register before transition
-      setTimeout(function() { 
-        targetNode.classList.add('active'); 
-      }, 10);
+      requestAnimationFrame(function() {
+        targetNode.classList.add('active');
+      });
     }
   }
 
   function resetToHomeView(event) {
     if (event) event.preventDefault();
+    
     stopVideoStream();
+    stopScanner();
     
     if (DOM.upload.input) DOM.upload.input.value = '';
     AppState.imageData = null;
     
-    DOM.preview.scanner.style.display = 'none';
-    DOM.status.loading.style.display = 'none';
-    DOM.status.result.style.display = 'none';
-    DOM.status.result.classList.add('hidden');
-    DOM.upload.btnAnalyze.disabled = true;
+    if (DOM.status.loading) DOM.status.loading.style.display = 'none';
+    if (DOM.status.result) {
+      DOM.status.result.style.display = 'none';
+      DOM.status.result.classList.add('hidden');
+    }
+    if (DOM.upload.btnAnalyze) DOM.upload.btnAnalyze.disabled = true;
     
     switchActiveView('selection');
     
-    // Revert visual stepper flow
-    DOM.stepper.step1.classList.remove('completed');
-    DOM.stepper.step1.classList.add('active');
-    DOM.stepper.step1.innerHTML = '<div class="step-circle"><i class="fas fa-camera"></i></div><div class="step-cursive">Photo</div>';
-    DOM.stepper.progress.style.width = '0%';
+    // Reset stepper
+    if (DOM.stepper.step1) {
+      DOM.stepper.step1.classList.remove('completed');
+      DOM.stepper.step1.classList.add('active');
+      DOM.stepper.step1.innerHTML = '<div class="step-circle"><i class="fas fa-camera"></i></div><div class="step-label">Photo</div>';
+    }
+    if (DOM.stepper.step2) {
+      DOM.stepper.step2.classList.remove('active');
+    }
+    if (DOM.stepper.progress) {
+      DOM.stepper.progress.style.width = '0%';
+    }
   }
 
-  // Securely request hardware camera stream
+  // Camera Functions
   async function initiateCamera(event) {
     if (event) event.preventDefault();
     
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error("Hardware Media API unavailable.");
+        throw new Error('Media API unavailable');
       }
 
-      AppState.stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: 'user', 
-          width: { ideal: 1280 }, 
-          height: { ideal: 720 } 
-        } 
+      AppState.stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'user',
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
       });
       
       DOM.camera.video.srcObject = AppState.stream;
       switchActiveView('camera');
     } catch (error) {
-      displayToastMessage('Camera hardware unavailable. Please upload a saved image instead.', 'error');
+      displayToastMessage('Camera unavailable. Please upload an image.', 'error');
     }
   }
 
   function stopVideoStream() {
-    if (AppState.stream) { 
-      AppState.stream.getTracks().forEach(function(track) { 
-        track.stop(); 
-      }); 
-      AppState.stream = null; 
+    if (AppState.stream) {
+      AppState.stream.getTracks().forEach(function(track) {
+        track.stop();
+      });
+      AppState.stream = null;
     }
   }
 
@@ -170,132 +217,203 @@
       return;
     }
     
-    hiddenCanvas.width = liveVideo.videoWidth; 
+    hiddenCanvas.width = liveVideo.videoWidth;
     hiddenCanvas.height = liveVideo.videoHeight;
     
-    const drawingContext = hiddenCanvas.getContext('2d');
-    
-    // Mirror standard selfies naturally
-    drawingContext.translate(hiddenCanvas.width, 0); 
-    drawingContext.scale(-1, 1);
-    drawingContext.drawImage(liveVideo, 0, 0);
+    const ctx = hiddenCanvas.getContext('2d');
+    ctx.translate(hiddenCanvas.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(liveVideo, 0, 0);
     
     stopVideoStream();
-    executeBiometricScan(hiddenCanvas.toDataURL('image/jpeg', 0.95));
+    executeBiometricScan(hiddenCanvas.toDataURL('image/jpeg', 0.92));
   }
 
+  // File Upload
   function handleFileSelect(event) {
-    const fileTarget = event.target.files[0];
+    const file = event.target.files[0];
     
-    if (!fileTarget) return;
+    if (!file) return;
     
-    if (!fileTarget.type.startsWith('image/')) {
+    if (!file.type.startsWith('image/')) {
       displayToastMessage('Invalid format. Image required.', 'error');
       event.target.value = '';
       return;
     }
     
-    const fileReader = new FileReader();
-    
-    fileReader.onload = function(evt) { 
-      executeBiometricScan(evt.target.result); 
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      executeBiometricScan(e.target.result);
     };
-    
-    fileReader.readAsDataURL(fileTarget);
+    reader.readAsDataURL(file);
   }
 
-  // Trigger high-end visual HUD and process image logic
+  // Scanner Functions - Optimized for smooth animation
+  function startScanner() {
+    if (!DOM.preview.scanner || AppState.isScanning) return;
+    
+    AppState.isScanning = true;
+    
+    // Reset scanner state completely first
+    const scanner = DOM.preview.scanner;
+    const laser = scanner.querySelector('.hud-laser');
+    
+    // Force reset
+    scanner.classList.remove('active');
+    scanner.style.display = 'none';
+    
+    if (laser) {
+      laser.style.animation = 'none';
+      laser.offsetHeight; // Force reflow
+    }
+    
+    // Start fresh animation
+    requestAnimationFrame(function() {
+      scanner.style.display = 'block';
+      
+      requestAnimationFrame(function() {
+        scanner.classList.add('active');
+        if (laser) {
+          laser.style.animation = '';
+        }
+      });
+    });
+  }
+
+  function stopScanner() {
+    if (!DOM.preview.scanner) return;
+    
+    AppState.isScanning = false;
+    
+    const scanner = DOM.preview.scanner;
+    const laser = scanner.querySelector('.hud-laser');
+    
+    scanner.classList.remove('active');
+    
+    if (laser) {
+      laser.style.animation = 'none';
+    }
+    
+    setTimeout(function() {
+      scanner.style.display = 'none';
+    }, 100);
+  }
+
   function executeBiometricScan(dataUrl) {
     AppState.imageData = dataUrl;
     DOM.preview.image.src = dataUrl;
     
     switchActiveView('preview');
     
-    DOM.status.result.style.display = 'none';
-    DOM.status.result.classList.add('hidden');
-    DOM.status.loading.style.display = 'flex';
-    DOM.upload.btnAnalyze.disabled = true;
+    if (DOM.status.result) {
+      DOM.status.result.style.display = 'none';
+      DOM.status.result.classList.add('hidden');
+    }
+    if (DOM.status.loading) {
+      DOM.status.loading.style.display = 'flex';
+    }
+    if (DOM.upload.btnAnalyze) {
+      DOM.upload.btnAnalyze.disabled = true;
+    }
 
-    // Launch CSS visual HUD
-    DOM.preview.scanner.style.display = 'block';
+    // Start scanner with slight delay for smooth transition
+    setTimeout(function() {
+      startScanner();
+    }, 100);
 
-    // Allow UI animation to breathe before returning result
+    // Process after animation
     setTimeout(async function() {
-      const verificationResponse = await authenticateFaceGeometry(dataUrl);
-      resolveScanResult(verificationResponse);
-    }, 3000); 
+      const result = await authenticateFaceGeometry(dataUrl);
+      resolveScanResult(result);
+    }, 3200);
   }
 
   async function authenticateFaceGeometry(dataUrl) {
-    // If the network blocked external scripts, bypass smoothly
     if (!AppState.modelsLoaded || typeof faceapi === 'undefined') {
-      return { 
-        success: true, 
-        msg: "Image securely verified. Core engine ready." 
+      return {
+        success: true,
+        msg: 'Image verified. Analysis ready.'
       };
     }
     
     try {
-      const validationImg = new Image(); 
-      validationImg.src = dataUrl;
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = dataUrl;
       
-      await new Promise(function(resolve) { 
-        validationImg.onload = resolve; 
+      await new Promise(function(resolve, reject) {
+        img.onload = resolve;
+        img.onerror = reject;
       });
       
-      const engineDetections = await faceapi.detectAllFaces(validationImg).withFaceLandmarks();
+      const detections = await faceapi.detectAllFaces(img).withFaceLandmarks();
       
-      if (engineDetections.length === 0) {
-        return { 
-          success: false, 
-          msg: "Face map unresolved. Ensure bright, even lighting." 
+      if (detections.length === 0) {
+        return {
+          success: false,
+          msg: 'No face detected. Please ensure good lighting.'
         };
       }
       
-      if (engineDetections.length > 1) {
-        return { 
-          success: false, 
-          msg: "Multiple subjects detected. Solo portrait required." 
+      if (detections.length > 1) {
+        return {
+          success: false,
+          msg: 'Multiple faces detected. Solo portrait required.'
         };
       }
       
-      return { 
-        success: true, 
-        msg: "Biometric geometry acquired perfectly." 
+      return {
+        success: true,
+        msg: 'Biometric data captured successfully.'
       };
-    } catch (error) { 
-      return { 
-        success: false, 
-        msg: "Geometry processor encountered an error." 
-      }; 
+    } catch (error) {
+      return {
+        success: false,
+        msg: 'Analysis error. Please try again.'
+      };
     }
   }
 
-  function resolveScanResult(responseObj) {
-    DOM.preview.scanner.style.display = 'none';
-    DOM.status.loading.style.display = 'none';
+  function resolveScanResult(result) {
+    stopScanner();
     
-    const uiStatusBox = DOM.status.result;
-    uiStatusBox.style.display = 'flex';
-    uiStatusBox.classList.remove('hidden');
+    if (DOM.status.loading) {
+      DOM.status.loading.style.display = 'none';
+    }
     
-    if (responseObj.success) {
-      uiStatusBox.className = 'feedback-box feedback-success';
-      uiStatusBox.innerHTML = '<i class="fas fa-check-circle"></i> ' + responseObj.msg;
+    const statusBox = DOM.status.result;
+    if (statusBox) {
+      statusBox.style.display = 'flex';
+      statusBox.classList.remove('hidden');
       
-      DOM.upload.btnAnalyze.disabled = false;
-      displayToastMessage('Ready for diagnostic analysis.', 'success');
-      
-      DOM.stepper.step1.classList.remove('active');
-      DOM.stepper.step1.classList.add('completed');
-      DOM.stepper.step1.innerHTML = '<div class="step-circle"><i class="fas fa-check"></i></div><div class="step-cursive">Photo</div>';
-      DOM.stepper.progress.style.width = '33%';
-      DOM.stepper.step2.classList.add('active');
-    } else {
-      uiStatusBox.className = 'feedback-box feedback-error';
-      uiStatusBox.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + responseObj.msg;
-      
-      displayToastMessage('Verification sequence failed. Please retry.', 'error');
+      if (result.success) {
+        statusBox.className = 'feedback-box feedback-success';
+        statusBox.innerHTML = '<i class="fas fa-check-circle"></i> ' + result.msg;
+        
+        if (DOM.upload.btnAnalyze) {
+          DOM.upload.btnAnalyze.disabled = false;
+        }
+        
+        displayToastMessage('Ready for analysis.', 'success');
+        
+        // Update stepper
+        if (DOM.stepper.step1) {
+          DOM.stepper.step1.classList.remove('active');
+          DOM.stepper.step1.classList.add('completed');
+          DOM.stepper.step1.innerHTML = '<div class="step-circle"><i class="fas fa-check"></i></div><div class="step-label">Photo</div>';
+        }
+        if (DOM.stepper.progress) {
+          DOM.stepper.progress.style.width = '33%';
+        }
+        if (DOM.stepper.step2) {
+          DOM.stepper.step2.classList.add('active');
+        }
+      } else {
+        statusBox.className = 'feedback-box feedback-error';
+        statusBox.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + result.msg;
+        
+        displayToastMessage('Verification failed. Please retry.', 'error');
+      }
     }
   }
 
@@ -303,49 +421,52 @@
     if (event) event.preventDefault();
     if (!AppState.imageData) return;
     
-    const actionButton = DOM.upload.btnAnalyze;
-    actionButton.disabled = true;
-    actionButton.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Initializing Neural Net...';
+    const btn = DOM.upload.btnAnalyze;
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processing...';
+    }
     
-    // Safely invoke Storage to avoid redeclaration crash against js/core/storage.js
+    // Save image data
     try {
       if (window.Storage && typeof window.Storage.saveImage === 'function') {
         window.Storage.saveImage(AppState.imageData);
       } else if (typeof Storage !== 'undefined' && typeof Storage.saveImage === 'function') {
         Storage.saveImage(AppState.imageData);
       }
-    } catch(err) {
-      console.warn("Dermora: Storage handshake bypassed safely.");
+    } catch (err) {
+      console.warn('Epiqora: Storage bypassed.');
     }
     
     setTimeout(function() {
-      displayToastMessage('Establishing secure connection...', 'success');
+      displayToastMessage('Connecting to analysis engine...', 'success');
       
-      setTimeout(function() { 
-        actionButton.innerHTML = '<i class="fas fa-check"></i> Rerouting to Clinic...'; 
-        
-        // Execute primary routing
+      setTimeout(function() {
+        if (btn) {
+          btn.innerHTML = '<i class="fas fa-check"></i> Redirecting...';
+        }
         window.location.href = '/analysis';
-      }, 900);
-      
+      }, 800);
     }, 1000);
   }
 
-  function displayToastMessage(messageText, messageLevel = 'info') {
-    const toastWrapper = document.getElementById('toastMessage');
-    const toastIcon = document.getElementById('toastIcon');
-    const toastLabel = document.getElementById('toastText');
+  function displayToastMessage(message, level) {
+    const toast = document.getElementById('toastMessage');
+    const icon = document.getElementById('toastIcon');
+    const text = document.getElementById('toastText');
     
-    toastWrapper.style.background = messageLevel === 'error' ? 'var(--color-error)' : 'var(--color-text-primary)';
-    toastIcon.className = messageLevel === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-check-circle';
-    toastIcon.style.color = messageLevel === 'error' ? '#FFF' : 'var(--color-brand-cyan)';
+    if (!toast || !icon || !text) return;
     
-    toastLabel.innerText = messageText;
+    toast.style.background = level === 'error' ? 'var(--color-error)' : 'var(--color-text-primary)';
+    icon.className = level === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-check-circle';
+    icon.style.color = level === 'error' ? '#FFF' : 'var(--color-brand-cyan)';
     
-    toastWrapper.classList.add('show');
-    setTimeout(function() { 
-      toastWrapper.classList.remove('show'); 
-    }, 3800);
+    text.textContent = message;
+    
+    toast.classList.add('show');
+    setTimeout(function() {
+      toast.classList.remove('show');
+    }, 3500);
   }
 
 })();

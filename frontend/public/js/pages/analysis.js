@@ -1,6 +1,6 @@
 /**
- * Dermora Pro - Analysis Page Logic
- * Features an Advanced Image Diagnostic Dashboard with dynamic SVG topological overlays,
+ * Epiqora - Analysis Page Logic
+ * Advanced Image Diagnostic Dashboard with dynamic SVG topological overlays,
  * floating HUD badges, and connecting tech-lines.
  */
 
@@ -77,15 +77,13 @@
 
   async function executeAnalysisFlow() {
     try {
-      console.log("[Dermora] Initiating analysis flow...");
-
       let imageData = null;
       if (typeof Storage !== 'undefined' && typeof Storage.getImage === 'function') {
         imageData = Storage.getImage();
       } else if (window.Storage && typeof window.Storage.getImage === 'function') {
         imageData = window.Storage.getImage();
       } else {
-        imageData = localStorage.getItem('dermora_current_image');
+        imageData = localStorage.getItem('epiqora_current_image');
       }
 
       if (!imageData) {
@@ -114,7 +112,7 @@
       renderDiagnosticResults(analysisData);
 
     } catch (error) {
-      console.error('[Dermora Engine Error]:', error);
+      console.error('[Epiqora Engine Error]:', error);
       triggerErrorState(error.message || 'Diagnostic engine encountered a severe anomaly.');
     }
   }
@@ -145,7 +143,7 @@
     if (!DOM.facialOverlaySvg || !DOM.analyzedImage) return;
     
     if (typeof faceapi === 'undefined') {
-      console.warn("Dermora: FaceAPI library missing. Topology overlay bypassed.");
+      console.warn("Epiqora: FaceAPI library missing. Topology overlay bypassed.");
       return;
     }
 
@@ -155,12 +153,10 @@
       
       await new Promise(function(resolve) { imgObj.onload = resolve; });
 
-      // Ensure SVG is cleanly sized and preserves aspect ratio exactly like the image
       const imgWidth = imgObj.naturalWidth;
       const imgHeight = imgObj.naturalHeight;
       DOM.facialOverlaySvg.setAttribute('viewBox', '0 0 ' + imgWidth + ' ' + imgHeight);
 
-      // Keep the filter definitions and clear old markers
       DOM.facialOverlaySvg.innerHTML = `
         <defs>
           <filter id="heatmapGlow" x="-50%" y="-50%" width="200%" height="200%">
@@ -189,14 +185,12 @@
       const poresRaw = (analysisData.pores?.visibility || analysisData.pores || '').toLowerCase();
       const hasPores = poresRaw !== 'normal' && poresRaw !== 'minimal';
 
-      // Helper: Calculate center point of a shape to draw the line from
       function getCentroid(points) {
         let x = 0, y = 0;
         points.forEach(function(p) { x += p.x; y += p.y; });
         return { x: x / points.length, y: y / points.length };
       }
 
-      // Helper: Draw floating SVG Badge
       function createSVGBadge(x, y, label, score, statusClass) {
         const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         group.setAttribute('class', 'svg-hud-badge ' + statusClass);
@@ -204,12 +198,12 @@
         const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         circle.setAttribute('cx', x);
         circle.setAttribute('cy', y);
-        circle.setAttribute('r', 35);
+        circle.setAttribute('r', 32);
         circle.setAttribute('class', 'badge-bg');
 
         const scoreText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         scoreText.setAttribute('x', x);
-        scoreText.setAttribute('y', y + 5);
+        scoreText.setAttribute('y', y + 4);
         scoreText.setAttribute('text-anchor', 'middle');
         scoreText.setAttribute('dominant-baseline', 'middle');
         scoreText.setAttribute('class', 'badge-score');
@@ -217,7 +211,7 @@
 
         const labelText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         labelText.setAttribute('x', x);
-        labelText.setAttribute('y', y + 55);
+        labelText.setAttribute('y', y + 50);
         labelText.setAttribute('text-anchor', 'middle');
         labelText.setAttribute('class', 'badge-label');
         labelText.textContent = label;
@@ -228,15 +222,12 @@
         return group;
       }
 
-      // Main Builder: Draws the blurred zone, the line, and the badge
       function drawDiagnosticHUD(points, statusClass, label, score, badgeX, badgeY) {
-        // 1. Heatmap Polygon
         const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
         poly.setAttribute('points', points.map(function(p) { return p.x + ',' + p.y; }).join(' '));
         poly.setAttribute('class', 'zone-polygon ' + statusClass);
         poly.setAttribute('filter', 'url(#heatmapGlow)');
 
-        // 2. Connecting Line
         const centroid = getCentroid(points);
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
         line.setAttribute('x1', centroid.x);
@@ -245,7 +236,6 @@
         line.setAttribute('y2', badgeY);
         line.setAttribute('class', 'hud-line ' + statusClass);
 
-        // 3. Floating Badge
         const badge = createSVGBadge(badgeX, badgeY, label, score, statusClass);
 
         DOM.facialOverlaySvg.appendChild(poly);
@@ -253,7 +243,7 @@
         DOM.facialOverlaySvg.appendChild(badge);
       }
 
-      // Zone 1: Forehead (Pores / Texture)
+      // Zone 1: Forehead (Pores)
       const foreheadPoints = [ leftBrow[1], rightBrow[3], { x: rightBrow[3].x, y: rightBrow[3].y - 60 }, { x: leftBrow[1].x, y: leftBrow[1].y - 60 } ];
       drawDiagnosticHUD(
         foreheadPoints, 
@@ -261,7 +251,7 @@
         'Pores', 
         hasPores ? '68' : '92', 
         box.x + box.width / 2, 
-        box.y - 80
+        box.y - 70
       );
 
       // Zone 2: Left Cheek (Acne)
@@ -271,7 +261,7 @@
         hasAcne ? 'zone-warn' : 'zone-good', 
         'Acne', 
         hasAcne ? '82' : '98', 
-        box.x - 90, 
+        box.x - 80, 
         box.y + box.height * 0.6
       );
 
@@ -282,7 +272,7 @@
         hasAcne ? 'zone-warn' : 'zone-good', 
         'Texture', 
         hasAcne ? '75' : '95', 
-        box.x + box.width + 90, 
+        box.x + box.width + 80, 
         box.y + box.height * 0.6
       );
 
@@ -293,12 +283,12 @@
         hasDarkCircles ? 'zone-alert' : 'zone-good', 
         'Dark Circles', 
         hasDarkCircles ? '62' : '91', 
-        box.x + box.width + 90, 
+        box.x + box.width + 80, 
         box.y + box.height * 0.15
       );
 
     } catch (e) {
-      console.warn("Dermora: Topology mapping safely bypassed due to rendering engine error.", e);
+      console.warn("Epiqora: Topology mapping safely bypassed due to rendering engine error.", e);
     }
   }
 
@@ -314,7 +304,6 @@
     setTimeout(function() {
       switchView('results');
 
-      // Generate Premium HUD Overlay
       generateFacialTopology(analysisData);
 
       // Overall Score & SVG Ring

@@ -21,10 +21,8 @@ export async function generateReport(analysis, questions, answers) {
       throw new Error('GEMINI_API_KEY is not configured');
     }
 
-    // Build context from analysis and answers
     const context = buildContext(analysis, questions, answers);
 
-    // UPDATED: Use the modern model and strict JSON output
     const model = genAI.getGenerativeModel({ 
       model: 'gemini-2.5-flash',
       generationConfig: {
@@ -32,57 +30,58 @@ export async function generateReport(analysis, questions, answers) {
       }
     });
 
-    const reportPrompt = `You are an expert dermatologist creating a personalized skincare report. 
-Based on the following skin analysis and user responses, create a comprehensive skincare routine and recommendations.
+    const reportPrompt = `You are an expert clinical dermatologist. Create a highly concise, personalized skincare protocol.
+    
+    MEDICAL SAFETY PROTOCOL (CRITICAL):
+    1. NO PRESCRIPTION DRUGS: NEVER recommend prescription-only medications (e.g., Tretinoin, oral Isotretinoin, oral antibiotics, Spironolactone). ONLY recommend over-the-counter (OTC) cosmetic ingredients.
+    2. PREVENT CONTRAINDICATIONS: Do not mix conflicting active ingredients. 
+       - Example: Do not mix strong AHA/BHA with Retinol in the same routine. 
+       - Example: If the user has active acne or highly sensitive skin, strictly avoid irritating high-strength Vitamin C or physical scrubs. Prioritize barrier repair.
 
-ANALYSIS DATA:
-${JSON.stringify(analysis, null, 2)}
+    FORMATTING INSTRUCTIONS:
+    - BE EXTREMELY CONCISE. Space is limited on the physical A4 report. Maximum 1-2 short sentences per point.
+    - CRITIQUE USER HABITS: Deeply analyze the USER PROFILE. If they mention bad habits, explicitly correct them in 'root_cause_analysis' or 'strictly_avoid'.
+    - Focus on active ingredients, not brand names.
+    - NO TIMELINES.
+    - EXACT LIMITS: You MUST provide EXACTLY TWO items for 'strictly_avoid' and EXACTLY TWO items for 'clinical_targets'. No more, no less.
 
-USER PROFILE:
-${context}
+    ANALYSIS DATA:
+    ${JSON.stringify(analysis, null, 2)}
 
-Generate a structured report in JSON format with ONLY valid JSON:
-{
-  "summary": "Brief overall assessment (2-3 sentences)",
-  "skinProfile": {
-    "type": "Skin type with characteristics",
-    "mainConcerns": ["concern 1", "concern 2", "concern 3"],
-    "strengths": ["strength 1", "strength 2"]
-  },
-  "morningRoutine": [
-    {"step": 1, "product_type": "string", "recommendation": "specific recommendation", "reason": "why this is recommended"}
-  ],
-  "eveningRoutine": [
-    {"step": 1, "product_type": "string", "recommendation": "specific recommendation", "reason": "why this is recommended"}
-  ],
-  "weeklyTreatments": [
-    {"treatment": "string", "frequency": "times per week", "benefit": "expected benefit"}
-  ],
-  "lifestyle": [
-    {"category": "string", "tip": "actionable tip"}
-  ],
-  "expectedResults": {
-    "timeline": "4-8 weeks",
-    "improvements": ["improvement 1", "improvement 2", "improvement 3"]
-  },
-  "scoreBreakdown": {
-    "currentScore": ${analysis.overall_score || 0},
-    "targetScore": 85,
-    "improvementAreas": ["area 1", "area 2"]
-  }
-}`;
+    USER PROFILE:
+    ${context}
 
+    Generate ONLY valid JSON matching this exact schema:
+    {
+      "root_cause_analysis": "A single 3-4 sentence paragraph explaining the 'why' based on their data. MUST correct bad habits.",
+      "morning_protocol": [
+        {"step": 1, "product": "Generic Product Name", "active_targets": "Key ingredients"}
+      ],
+      "evening_protocol": [
+        {"step": 1, "product": "Generic Product Name", "active_targets": "Key ingredients"}
+      ],
+      "strictly_avoid": [
+        "First thing to avoid (maximum 2 items)",
+        "Second thing to avoid"
+      ],
+      "clinical_targets": [
+        "First habit to build (maximum 2 items)",
+        "Second habit to build"
+      ]
+    }`;
+
+    console.log('[ReportService] Sending Prompt to AI...');
     const response = await model.generateContent(reportPrompt);
-    const responseText = response.response.text();
+    
+    const responseText = response.response ? response.response.text() : response.text();
 
-    // Parse and validate report safely
-    const report = parseReportResponse(responseText);
-    validateReportStructure(report);
+    let report = parseReportResponse(responseText);
+    report = validateAndHealStructure(report);
 
-    console.log('[Report] Generated successfully');
+    console.log('[ReportService] Generated successfully and healed schema.');
     return {
       success: true,
-      data: { report }, // Wrapped to match your frontend expectation
+      data: { report }, 
     };
   } catch (error) {
     console.error('[Report] Generation error:', error.message);
@@ -90,24 +89,21 @@ Generate a structured report in JSON format with ONLY valid JSON:
   }
 }
 
-/**
- * Build user profile context from answers
- */
 function buildContext(analysis, questions, answers) {
   let context = `Skin Analysis Results:\n`;
   context += `- Overall Score: ${analysis.overall_score || 0}/100\n`;
-  context += `- Skin Type: ${analysis.skin_type?.type} (${analysis.skin_type?.confidence}% confidence)\n`;
-  context += `- Acne: ${analysis.acne?.present ? `Present (${analysis.acne?.severity})` : 'Not detected'}\n`;
+  context += `- Skin Type: ${analysis.skin_type?.type || 'Combination'} (${analysis.skin_type?.confidence || 80}% confidence)\n`;
+  context += `- Acne: ${analysis.acne?.present ? `Present (${analysis.acne?.severity || 'Mild'})` : 'Not detected'}\n`;
   context += `- Dark Circles: ${analysis.dark_circles?.present ? 'Present' : 'Not detected'}\n`;
-  context += `- Texture: ${analysis.texture?.smoothness}\n`;
-  context += `- Pores: ${analysis.pores?.visibility}\n\n`;
+  context += `- Texture: ${analysis.texture?.smoothness || 'Normal'}\n`;
+  context += `- Pores: ${analysis.pores?.visibility || 'Normal'}\n\n`;
 
-  context += `User Preferences & Lifestyle:\n`;
-  if (questions && answers) {
+  context += `User Preferences & Lifestyle (CRITIQUE THESE IF INCORRECT):\n`;
+  if (questions && answers && questions.length > 0) {
     questions.forEach((question, index) => {
       const answer = answers[index];
       if (answer) {
-        context += `- ${question.question}: ${Array.isArray(answer) ? answer.join(', ') : answer}\n`;
+        context += `- ${question.question || question}: ${Array.isArray(answer) ? answer.join(', ') : answer}\n`;
       }
     });
   }
@@ -115,9 +111,6 @@ function buildContext(analysis, questions, answers) {
   return context;
 }
 
-/**
- * Parse report response safely
- */
 function parseReportResponse(responseText) {
   try {
     return JSON.parse(responseText);
@@ -134,26 +127,22 @@ function parseReportResponse(responseText) {
   }
 }
 
-/**
- * Validate report structure
- */
-function validateReportStructure(report) {
-  const required = [
-    'summary',
-    'skinProfile',
-    'morningRoutine',
-    'eveningRoutine',
-    'weeklyTreatments',
-    'lifestyle',
-    'expectedResults',
-    'scoreBreakdown',
-  ];
+function validateAndHealStructure(report) {
+  const finalReport = report || {};
+  const core = finalReport.report || finalReport.data || finalReport;
 
-  for (const field of required) {
-    if (!(field in report)) {
-      throw new Error(`Missing required field: ${field}`);
-    }
-  }
+  // Enforce the "Exactly Two" rule securely on the backend
+  const strictlyAvoid = Array.isArray(core.strictly_avoid) ? core.strictly_avoid.slice(0, 2) : [];
+  const clinicalTargets = Array.isArray(core.clinical_targets) ? core.clinical_targets.slice(0, 2) : [];
+
+  return {
+    root_cause_analysis: core.root_cause_analysis || "AI analysis indicates structural deviations requiring specialized protocol stabilization.",
+    morning_protocol: Array.isArray(core.morning_protocol) ? core.morning_protocol : [],
+    evening_protocol: Array.isArray(core.evening_protocol) ? core.evening_protocol : [],
+    strictly_avoid: strictlyAvoid,
+    clinical_targets: clinicalTargets,
+    systemic_factors: Array.isArray(core.systemic_factors) ? core.systemic_factors.slice(0, 2) : []
+  };
 }
 
 export default {

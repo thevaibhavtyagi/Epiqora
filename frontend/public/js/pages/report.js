@@ -1,7 +1,7 @@
 /**
- * Dermora Pro - Report Page Logic
- * Parses complex AI clinical data (Product Types, Reasons, Frequencies),
- * injects patient biometrics into a strict A4 template, and exports to PNG.
+ * Epiqora - Report Page Logic
+ * Safely parses the strict A4 JSON schema, maps it into the vanilla CSS grid,
+ * and handles HTML2Canvas High-Res PNG exporting.
  */
 
 (function() {
@@ -11,24 +11,17 @@
     loading: document.getElementById('reportLoading'),
     content: document.getElementById('reportContent'),
     error: document.getElementById('reportError'),
-    
-    // Printable A4 Area
     printableReport: document.getElementById('printableReport'),
     reportBody: document.getElementById('dynamicReportBody'),
-    
-    // Patient Profile Injectors
     reportDate: document.getElementById('reportDate'),
     patientPhoto: document.getElementById('patientPhoto'),
+    patientIcon: document.getElementById('patientIcon'),
     patientScore: document.getElementById('patientScore'),
     patientType: document.getElementById('patientType'),
-    
-    // Buttons
     btnNewAnalysis: document.getElementById('newAnalysisButton'),
     btnDownloadPng: document.getElementById('downloadPngButton'),
     btnRetry: document.getElementById('retryButton'),
     errorMessage: document.getElementById('errorMessage'),
-
-    // Chat Sidebar
     chatTriggerBtn: document.getElementById('chatTriggerBtn'),
     chatSidebar: document.getElementById('chatSidebar'),
     closeChatBtn: document.getElementById('closeChatBtn'),
@@ -47,26 +40,15 @@
     if (DOM.btnDownloadPng) DOM.btnDownloadPng.addEventListener('click', handlePngDownload);
     if (DOM.btnRetry) DOM.btnRetry.addEventListener('click', function() { location.reload(); });
 
-    // Chat Sidebar Logic
     if (DOM.chatTriggerBtn && DOM.chatSidebar) {
-      DOM.chatTriggerBtn.addEventListener('click', function() {
-        DOM.chatSidebar.classList.add('open');
-      });
+      DOM.chatTriggerBtn.addEventListener('click', function() { DOM.chatSidebar.classList.add('open'); });
     }
     if (DOM.closeChatBtn && DOM.chatSidebar) {
-      DOM.closeChatBtn.addEventListener('click', function() {
-        DOM.chatSidebar.classList.remove('open');
-      });
+      DOM.closeChatBtn.addEventListener('click', function() { DOM.chatSidebar.classList.remove('open'); });
     }
-    
-    // Simple Chat Simulation
-    if (DOM.sendChatBtn) {
-      DOM.sendChatBtn.addEventListener('click', handleChatSend);
-    }
+    if (DOM.sendChatBtn) DOM.sendChatBtn.addEventListener('click', handleChatSend);
     if (DOM.chatInput) {
-      DOM.chatInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') handleChatSend();
-      });
+      DOM.chatInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') handleChatSend(); });
     }
   }
 
@@ -74,7 +56,6 @@
     const text = DOM.chatInput.value.trim();
     if (!text) return;
 
-    // Render User Message
     const userMsg = document.createElement('div');
     userMsg.className = 'message user-message';
     userMsg.textContent = text;
@@ -82,7 +63,6 @@
     DOM.chatInput.value = '';
     DOM.chatMessages.scrollTop = DOM.chatMessages.scrollHeight;
 
-    // Simulate AI Response
     setTimeout(function() {
       const aiMsg = document.createElement('div');
       aiMsg.className = 'message ai-message';
@@ -93,9 +73,12 @@
   }
 
   function switchView(viewName) {
-    if (DOM.loading) { DOM.loading.classList.remove('active'); DOM.loading.classList.add('hidden'); }
-    if (DOM.content) { DOM.content.classList.remove('active'); DOM.content.classList.add('hidden'); }
-    if (DOM.error) { DOM.error.classList.remove('active'); DOM.error.classList.add('hidden'); }
+    [DOM.loading, DOM.content, DOM.error].forEach(function(el) {
+      if (el) {
+        el.classList.remove('active');
+        el.classList.add('hidden');
+      }
+    });
 
     if (viewName === 'loading' && DOM.loading) {
       DOM.loading.classList.add('active');
@@ -111,204 +94,212 @@
 
   async function executeReportFlow() {
     try {
-      console.log('[Dermora] Initiating report generation engine...');
+      console.log('[Epiqora] Initiating optimized report engine...');
       switchView('loading');
 
-      if (typeof Storage === 'undefined') throw new Error("System storage architecture missing.");
+      if (typeof Storage === 'undefined') {
+        throw new Error("System storage architecture missing.");
+      }
 
       const analysisData = Storage.getAnalysis();
       const answersData = Storage.getAnswers() || {};
       const imageData = Storage.getImage();
 
-      if (!analysisData) throw new Error("Biometric data missing. Please restart sequence.");
-
-      // 1. Inject Header Data
-      if (DOM.reportDate) {
-        DOM.reportDate.textContent = `Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`;
+      if (!analysisData) {
+        throw new Error("Biometric data missing. Please restart sequence.");
       }
-      if (DOM.patientPhoto && imageData) {
+
+      if (DOM.reportDate) {
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        DOM.reportDate.textContent = 'Date: ' + new Date().toLocaleDateString('en-US', options);
+      }
+      
+      if (DOM.patientPhoto && imageData && imageData.length > 50) {
+        DOM.patientPhoto.onload = function() {
+          DOM.patientPhoto.style.display = 'block';
+          if (DOM.patientIcon) DOM.patientIcon.style.display = 'none';
+        };
         DOM.patientPhoto.src = imageData;
       }
       
       const ad = analysisData.analysis || analysisData.data || analysisData;
-      if (DOM.patientScore) DOM.patientScore.textContent = Math.round(ad.overall_score || ad.overallScore || 0);
-      if (DOM.patientType) DOM.patientType.textContent = ad.skin_type?.type || ad.skin_type || 'Combination';
-
-      // 2. Safely Fetch or Generate the Report Payload
-      let rawReport = Storage.getReport();
       
-      if (!rawReport) {
-        if (typeof generateReport !== 'function') {
-          throw new Error('Core API missing (generateReport function not found).');
-        }
+      if (DOM.patientScore) {
+        DOM.patientScore.textContent = Math.round(ad.overall_score || ad.overallScore || 0);
+      }
+      
+      const baseSkinType = ad.skin_type?.type || ad.skin_type || 'Combination';
+      if (DOM.patientType) {
+        DOM.patientType.textContent = typeof baseSkinType === 'string' ? baseSkinType : 'Combination';
+      }
+
+      let rawReport = Storage.getReport();
+      let isReportValid = false;
+
+      // Check if cache is a valid object
+      if (typeof rawReport === 'string') {
+        try { rawReport = JSON.parse(rawReport); } catch(e) {}
+      }
+
+      if (rawReport && (rawReport.root_cause_analysis || rawReport.data?.report?.root_cause_analysis || rawReport.report?.root_cause_analysis)) {
+         isReportValid = true;
+      }
+
+      // If no valid cache, fetch new
+      if (!isReportValid) {
+        console.log('[Epiqora] Cache empty or invalid. Triggering fresh AI generation...');
+        if (typeof generateReport !== 'function') throw new Error('API Core missing.');
 
         const answersArray = Object.keys(answersData).map(function(key) {
           return { questionId: key, answer: answersData[key] };
         });
 
-        rawReport = await generateReport(ad, [], answersArray);
-        Storage.saveReport(rawReport?.report || rawReport);
+        const apiResponse = await generateReport(ad, [], answersArray);
+        
+        // Safely extract the core report BEFORE saving to avoid nesting issues
+        let extractedReport = apiResponse;
+        if (extractedReport?.data?.report) extractedReport = extractedReport.data.report;
+        else if (extractedReport?.report) extractedReport = extractedReport.report;
+        else if (extractedReport?.data) extractedReport = extractedReport.data;
+
+        Storage.saveReport(extractedReport);
+        rawReport = extractedReport; // Set it so it renders immediately
       }
 
-      // 3. Bulletproof JSON Extraction (Fixes the Raw Code Dump)
-      let reportObj = rawReport;
-      if (typeof rawReport === 'string') {
-        try {
-          // Regex to strip out markdown code blocks (```json) if Gemini added them
-          const jsonMatch = rawReport.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            reportObj = JSON.parse(jsonMatch[0]);
-          } else {
-            reportObj = JSON.parse(rawReport);
-          }
-        } catch (e) {
-          console.warn("Failed to parse raw report string, attempting fallback.", e);
-          reportObj = { additionalTips: rawReport.replace(/\n/g, '<br>') };
-        }
-      }
+      // Final unwrap just to be absolutely sure
+      let finalReportObj = rawReport;
+      if (finalReportObj?.data?.report) finalReportObj = finalReportObj.data.report;
+      else if (finalReportObj?.report) finalReportObj = finalReportObj.report;
 
-      if (reportObj && reportObj.report) reportObj = reportObj.report;
-      else if (reportObj && reportObj.data) reportObj = reportObj.data;
-
-      // 4. Render the DOM structure
-      renderReportContent(reportObj);
+      renderReportContent(finalReportObj);
       
-      // Delay slightly so user sees the premium loader
       setTimeout(function() {
         switchView('content');
       }, 800);
 
     } catch (error) {
-      console.error('[Dermora Report Error]:', error);
+      console.error('[Epiqora Report Error]:', error);
       triggerErrorState(error.message || 'Failed to formulate clinical document.');
     }
   }
 
-  // Parses complex AI Schema into beautiful 2-Column HTML Blocks
   function renderReportContent(report) {
     if (!DOM.reportBody) return;
-    DOM.reportBody.innerHTML = ''; 
+    DOM.reportBody.innerHTML = '';
 
-    // Helper to safely get arrays regardless of camelCase or snake_case
-    const getArray = (key1, key2) => Array.isArray(report[key1]) ? report[key1] : (Array.isArray(report[key2]) ? report[key2] : null);
+    const rootCause = report?.root_cause_analysis || "AI analysis indicates structural deviations requiring specialized protocol stabilization based on your biometrics and lifestyle inputs.";
+    const morning = Array.isArray(report?.morning_protocol) ? report.morning_protocol : [];
+    const evening = Array.isArray(report?.evening_protocol) ? report.evening_protocol : [];
+    const avoid = Array.isArray(report?.strictly_avoid) ? report.strictly_avoid.slice(0, 2) : [];
+    const targets = Array.isArray(report?.clinical_targets) ? report.clinical_targets.slice(0, 2) : [];
+    const systemic = Array.isArray(report?.systemic_factors) ? report.systemic_factors : null;
 
-    const morning = getArray('morning_routine', 'morningRoutine');
-    const evening = getArray('evening_routine', 'eveningRoutine');
-    const treatments = getArray('weekly_treatments', 'weeklyTreatments');
-    const lifestyle = getArray('lifestyle_tips', 'lifestyleTips');
-    
-    // Hyper-Resilient Section Builder
-    function buildSection(title, icon, itemsArray) {
-      if (!itemsArray || itemsArray.length === 0) return '';
-      
-      let html = `<div class="report-section-block">
-                    <h2 class="report-section-title"><i class="${icon}"></i> ${title}</h2>
-                    <div class="report-list">`;
-      
-      itemsArray.forEach(function(item) {
-        if (typeof item === 'string') {
-          html += `<div class="report-list-item"><p style="margin: 0;">${item}</p></div>`;
-        } else if (typeof item === 'object') {
-          
-          // Dynamically hunt for the title in the AI's complex schema
-          let itemTitle = item.productType || item.product_type || item.title || item.category || item.treatment || 'Recommendation';
-          
-          // Build the description string logically based on available keys
-          let itemDesc = '';
-          if (item.recommendation) itemDesc += `<span class="highlight-text">${item.recommendation}</span><br>`;
-          if (item.description) itemDesc += `${item.description}<br>`;
-          if (item.tip) itemDesc += `${item.tip}<br>`;
-          if (item.frequency) itemDesc += `<strong>Frequency:</strong> ${item.frequency}<br>`;
-          
-          // Add the "Reason" cleanly underneath
-          if (item.reason) {
-            itemDesc += `<div class="reason-text"><em>Clinical Note: ${item.reason}</em></div>`;
-          }
+    let htmlBuffer = `
+      <div style="margin-bottom: 18px;">
+        <h2 class="section-header">
+          <i class="fas fa-microscope"></i> Clinical Assessment & Root Cause
+        </h2>
+        <div class="reasoning-box">
+          <p class="reasoning-text">${rootCause}</p>
+        </div>
+      </div>
+      <div class="report-split-grid">
+    `;
 
-          html += `<div class="report-list-item">
-                     <div class="report-list-item-title">${itemTitle}</div>
-                     <div class="report-list-item-text">${itemDesc}</div>
-                   </div>`;
-        }
+    htmlBuffer += `
+      <div class="col-left">
+        <h2 class="section-header">
+          <i class="fas fa-prescription-bottle-medical"></i> Core Regimen
+        </h2>
+    `;
+
+    const buildRoutine = function(title, icon, iconColor, data) {
+      if (!data || data.length === 0) return '';
+      let html = `
+        <div class="routine-block">
+          <h3 class="routine-title">
+            <i class="${icon}" style="color: ${iconColor};"></i> ${title}
+          </h3>
+          <div class="routine-items-container">
+      `;
+      data.forEach(function(item, index) {
+        html += `
+          <div class="routine-item">
+            <div class="routine-number">${index + 1}</div>
+            <div>
+              <p class="routine-product">${item.product || item.product_type || 'Treatment Step'}</p>
+              <p class="routine-actives">Active Targets: ${item.active_targets || item.recommendation || 'Clinical Standard'}</p>
+            </div>
+          </div>
+        `;
       });
-      html += `</div></div>`;
-      return html;
+      return html + '</div></div>';
+    };
+
+    htmlBuffer += buildRoutine('Morning Protocol', 'fas fa-sun', '#F59E0B', morning);
+    htmlBuffer += buildRoutine('Evening Protocol', 'fas fa-moon', '#6366F1', evening);
+    htmlBuffer += '</div>';
+
+    htmlBuffer += `
+      <div class="col-right">
+        <h2 class="section-header" style="margin-bottom: 16px;">
+          <i class="fas fa-clipboard-list"></i> Habits & Directives
+        </h2>
+    `;
+
+    const buildList = function(title, icon, iconColor, listIcon, listIconColor, data) {
+      if (!data || data.length === 0) return '';
+      let html = `
+        <div class="habit-block">
+          <h3 class="habit-title" style="color: ${iconColor};">
+            <i class="${icon}"></i> ${title}
+          </h3>
+          <ul class="habit-list">
+      `;
+      data.forEach(function(item) {
+        const text = typeof item === 'string' ? item : (item.tip || item.category || '');
+        html += `
+          <li class="habit-item">
+            <i class="${listIcon}" style="color: ${listIconColor}; margin-top: 3px; font-size: 0.6rem;"></i>
+            <span class="habit-text">${text}</span>
+          </li>
+        `;
+      });
+      return html + '</ul></div>';
+    };
+
+    htmlBuffer += buildList('Strictly Avoid', 'fas fa-ban', '#F43F5E', 'fas fa-times-circle', '#FB7185', avoid);
+    htmlBuffer += buildList('Clinical Targets', 'fas fa-check-circle', '#059669', 'fas fa-check', '#10B981', targets);
+    
+    if (systemic && systemic.length > 0) {
+      htmlBuffer += '<div style="margin-top: auto; padding-top: 12px; border-top: 1px solid #E2E8F0;">';
+      htmlBuffer += buildList('Systemic Factors', 'fas fa-droplet', '#6366F1', 'fas fa-circle', '#818CF8', systemic);
+      htmlBuffer += '</div>';
     }
 
-    // Assemble 2-Column Architecture
-    let leftColumnHtml = '<div class="report-column">';
-    leftColumnHtml += buildSection('Morning Regimen', 'fas fa-sun', morning);
-    leftColumnHtml += buildSection('Evening Regimen', 'fas fa-moon', evening);
-    leftColumnHtml += '</div>';
-
-    let rightColumnHtml = '<div class="report-column">';
-    rightColumnHtml += buildSection('Clinical Treatments', 'fas fa-spa', treatments);
-    rightColumnHtml += buildSection('Lifestyle Protocol', 'fas fa-heartbeat', lifestyle);
-    rightColumnHtml += '</div>';
-
-    let htmlBuffer = `<div class="two-column-grid">${leftColumnHtml}${rightColumnHtml}</div>`;
-
-    // Projected Outcomes (Safely parses objects to prevent [object Object] error)
-    let results = report.expected_results || report.expectedResults;
-    if (results) {
-      let resultsHtml = '';
-      if (typeof results === 'string') {
-        resultsHtml = results;
-      } else if (typeof results === 'object') {
-        // If AI returns an object like { "1_week": "...", "1_month": "..." }
-        resultsHtml = Object.entries(results).map(([key, val]) => {
-          const cleanKey = key.replace(/_/g, ' ').toUpperCase();
-          return `<strong>${cleanKey}:</strong> ${val}`;
-        }).join('<br><br>');
-      }
-
-      htmlBuffer += `<div class="report-section-block">
-                       <h2 class="report-section-title"><i class="fas fa-chart-line"></i> Projected Outcomes</h2>
-                       <div class="report-text-block">${resultsHtml}</div>
-                     </div>`;
-    }
-
-    // Additional Tips
-    let tips = report.additional_tips || report.additionalTips;
-    if (tips) {
-      let tipsHtml = '';
-      if (Array.isArray(tips)) {
-        tipsHtml = tips.map(t => `• ${t}`).join('<br>');
-      } else if (typeof tips === 'string') {
-        tipsHtml = tips;
-      }
-
-      htmlBuffer += `<div class="report-section-block" style="margin-top: 32px;">
-                       <h2 class="report-section-title"><i class="fas fa-lightbulb"></i> Clinical Notes</h2>
-                       <div class="report-text-block">${tipsHtml}</div>
-                     </div>`;
-    }
-
-    // Ultimate Fallback (Only fires if the JSON was completely unrecognizable)
-    if (!morning && !evening && !treatments && !lifestyle && !results && !tips) {
-      htmlBuffer = `<div class="report-section-block">
-                       <h2 class="report-section-title"><i class="fas fa-clipboard"></i> Protocol Output</h2>
-                       <pre style="white-space: pre-wrap; font-family: inherit; line-height: 1.6; padding: 20px; background: #F8FAFC; border-radius: 12px;">${typeof report === 'object' ? JSON.stringify(report, null, 2) : report}</pre>
-                     </div>`;
-    }
+    htmlBuffer += `
+        <div class="habit-disclaimer">
+          Skin cycles take ~28 days. Stick strictly to this protocol for at least 4 weeks to see structural changes.
+        </div>
+      </div>
+    </div>`;
 
     DOM.reportBody.innerHTML = htmlBuffer;
   }
 
   function triggerErrorState(message) {
     switchView('error');
-    if (DOM.errorMessage) DOM.errorMessage.textContent = message;
+    if (DOM.errorMessage) {
+      DOM.errorMessage.textContent = message;
+    }
   }
 
-  // =========================================================================
-  // ACTIONS: Routing & High-Res PNG Download Engine
-  // =========================================================================
   function handleNewAnalysis(event) {
     if (event) event.preventDefault();
     if (typeof RouterGuard !== 'undefined' && typeof RouterGuard.resetFlow === 'function') {
       RouterGuard.resetFlow();
     } else {
-      window.location.href = '/upload'; 
+      window.location.href = '/upload';
     }
   }
 
@@ -316,38 +307,44 @@
     if (event) event.preventDefault();
     
     if (!DOM.printableReport || typeof html2canvas === 'undefined') {
-      alert("Download engine initializing. Please wait a second and try again.");
+      console.error('[Epiqora] html2canvas or printable report not available');
       return;
     }
 
     const btn = DOM.btnDownloadPng;
     const originalText = btn.innerHTML;
-    
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Rendering High-Res PNG...';
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Rendering PNG...';
+
+    // MAGIC TRICK: Force the body into A4 desktop layout for the screenshot
+    document.body.classList.add('exporting-mode');
+    
+    // Give the browser 100ms to apply the CSS changes
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     try {
-      // html2canvas accurately captures the strict A4 CSS bounds
       const canvas = await html2canvas(DOM.printableReport, {
-        scale: window.devicePixelRatio || 2, // High resolution mapping
-        useCORS: true, // Securely renders the user's uploaded image
+        scale: 2,
+        useCORS: true,
         backgroundColor: '#FFFFFF',
-        logging: false
+        logging: false,
+        windowWidth: 1000 // Fake a desktop window width
       });
 
       const imgData = canvas.toDataURL('image/png');
-      
       const downloadLink = document.createElement('a');
       downloadLink.href = imgData;
-      downloadLink.download = 'Dermora_Clinical_Protocol.png';
+      downloadLink.download = 'Epiqora_Clinical_Protocol.png';
       document.body.appendChild(downloadLink);
       downloadLink.click();
       document.body.removeChild(downloadLink);
 
     } catch (error) {
-      console.error("[Dermora] PNG Export Failed:", error);
-      alert("Failed to render PNG. Please check your browser permissions.");
+      console.error("[Epiqora] Export Failed:", error);
+      alert("Failed to render PNG. Please check browser permissions.");
     } finally {
+      // Revert back to mobile view immediately
+      document.body.classList.remove('exporting-mode');
       btn.disabled = false;
       btn.innerHTML = originalText;
     }
