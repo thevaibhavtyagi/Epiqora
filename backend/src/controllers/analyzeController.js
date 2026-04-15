@@ -5,6 +5,7 @@
 
 import { validateImage } from '../services/imageValidator.js';
 import { analyzeSkin } from '../services/geminiService.js';
+import Session from '../models/Session.js'; // NEW: Telemetry Model
 
 /**
  * POST /api/analyze
@@ -23,6 +24,8 @@ export async function analyzeImage(req, res, next) {
       });
     }
 
+    // NEW: Catch the sessionId from formData
+    const { sessionId } = req.body; 
     const { buffer, mimetype } = req.file;
 
     // Validate image
@@ -52,6 +55,31 @@ export async function analyzeImage(req, res, next) {
       });
     }
 
+    // --- NEW: SILENT TELEMETRY UPSERT ---
+    // Safely save to MongoDB in the background
+    if (sessionId) {
+      try {
+        await Session.findOneAndUpdate(
+          { sessionId: sessionId },
+          {
+            dropoffPoint: 'ANALYZED',
+            aiInitialScan: {
+              skinType: analysisResult.data.skin_type?.type || 'Unknown',
+              confidenceScore: analysisResult.data.skin_type?.confidence || 0,
+              primaryConcern: analysisResult.data.pigmentation?.level || 'None',
+              acnePresent: analysisResult.data.acne?.present || false
+            }
+          },
+          { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
+        console.log(`🛡️ [Telemetry] Session ${sessionId} saved -> ANALYZED`);
+      } catch (dbError) {
+        console.error(`⚠️ [Telemetry Warning] DB Save Failed: ${dbError.message}`);
+        // We do NOT throw here. The user must still get their analysis!
+      }
+    }
+    // ------------------------------------
+
     // Return analysis results
     res.status(200).json({
       success: true,
@@ -80,3 +108,7 @@ export async function analyzeImage(req, res, next) {
     next(error);
   }
 }
+
+export default {
+  analyzeImage,
+};

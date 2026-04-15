@@ -4,6 +4,7 @@
  */
 
 import { generateReport } from '../services/reportService.js';
+import Session from '../models/Session.js'; // NEW: Telemetry Model
 
 /**
  * POST /api/report
@@ -11,7 +12,8 @@ import { generateReport } from '../services/reportService.js';
  */
 export async function createReport(req, res, next) {
   try {
-    const { analysis, questions, answers } = req.body;
+    // NEW: Added sessionId extraction
+    const { analysis, questions, answers, sessionId } = req.body;
 
     // Validate input
     if (!analysis || !questions || !answers) {
@@ -37,6 +39,33 @@ export async function createReport(req, res, next) {
     // Generate report
     console.log('[Report Controller] Generating report...');
     const result = await generateReport(analysis, questions, answers);
+
+    // --- NEW: SILENT TELEMETRY UPSERT ---
+    // Now that the user has completed everything, we save the answers 
+    // and the final regimen to MongoDB securely.
+    if (sessionId) {
+      try {
+        // Map the questions and answers together perfectly
+        const consultationLog = questions.map((q, index) => ({
+          question: q.question || q,
+          answer: answers[index] || 'No answer provided'
+        }));
+
+        await Session.findOneAndUpdate(
+          { sessionId: sessionId },
+          {
+            dropoffPoint: 'FINISHED_REPORT',
+            consultationLog: consultationLog,
+            finalRegimen: result.data
+          },
+          { upsert: true, new: true }
+        );
+        console.log(`🛡️ [Telemetry] Session ${sessionId} saved -> FINISHED_REPORT`);
+      } catch (dbError) {
+        console.error(`⚠️ [Telemetry Warning] DB Save Failed: ${dbError.message}`);
+      }
+    }
+    // ------------------------------------
 
     res.status(200).json({
       success: true,

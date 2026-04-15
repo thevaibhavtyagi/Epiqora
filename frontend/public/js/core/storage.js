@@ -10,7 +10,34 @@ const Storage = {
     ANALYSIS: 'dermai_analysis',
     ANSWERS: 'dermai_answers',
     REPORT: 'dermai_report',
+    SESSION_ID: 'epiqora_session_id', // NEW: Telemetry Session Key
   },
+
+  // --- NEW: TELEMETRY & TRACKING ---
+  
+  /**
+   * Generates or retrieves a highly secure, anonymous session ID.
+   * This tracks drop-offs but contains ZERO personal data.
+   */
+  getSessionId() {
+    let sessionId = sessionStorage.getItem(this.KEYS.SESSION_ID);
+    
+    // If they don't have an ID yet, create one!
+    if (!sessionId) {
+      // Use the browser's built-in crypto for a professional-grade random string
+      const randomPart = window.crypto && window.crypto.randomUUID 
+        ? crypto.randomUUID() 
+        : Math.random().toString(36).substring(2, 15);
+        
+      sessionId = `epiq-${randomPart}`;
+      sessionStorage.setItem(this.KEYS.SESSION_ID, sessionId);
+      console.log('🛡️ [Telemetry] Anonymous Session Started:', sessionId);
+    }
+    
+    return sessionId;
+  },
+
+  // --- EXISTING CORE LOGIC ---
 
   /**
    * Save image data

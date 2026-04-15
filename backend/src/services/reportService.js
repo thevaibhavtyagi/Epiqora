@@ -24,7 +24,7 @@ export async function generateReport(analysis, questions, answers) {
     const context = buildContext(analysis, questions, answers);
 
     const model = genAI.getGenerativeModel({ 
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.5-flash-lite',
       generationConfig: {
         responseMimeType: "application/json",
       }
@@ -37,10 +37,10 @@ export async function generateReport(analysis, questions, answers) {
     2. PREVENT CONTRAINDICATIONS: Do not mix conflicting active ingredients. 
        - Example: Do not mix strong AHA/BHA with Retinol in the same routine. 
        - Example: If the user has active acne or highly sensitive skin, strictly avoid irritating high-strength Vitamin C or physical scrubs. Prioritize barrier repair.
+    3. BRUTAL HONESTY ON HABITS: Read the "USER PREFERENCES & LIFESTYLE" section. If they mention bad habits (e.g., poor diet, lack of sleep, no sunscreen, picking skin), you MUST explicitly call them out and correct them in the 'root_cause_analysis' and 'strictly_avoid' sections.
 
     FORMATTING INSTRUCTIONS:
     - BE EXTREMELY CONCISE. Space is limited on the physical A4 report. Maximum 1-2 short sentences per point.
-    - CRITIQUE USER HABITS: Deeply analyze the USER PROFILE. If they mention bad habits, explicitly correct them in 'root_cause_analysis' or 'strictly_avoid'.
     - Focus on active ingredients, not brand names.
     - NO TIMELINES.
     - EXACT LIMITS: You MUST provide EXACTLY TWO items for 'strictly_avoid' and EXACTLY TWO items for 'clinical_targets'. No more, no less.
@@ -53,7 +53,7 @@ export async function generateReport(analysis, questions, answers) {
 
     Generate ONLY valid JSON matching this exact schema:
     {
-      "root_cause_analysis": "A single 3-4 sentence paragraph explaining the 'why' based on their data. MUST correct bad habits.",
+      "root_cause_analysis": "A single 3-4 sentence paragraph explaining the 'why' based on their biometric data AND explicitly critiquing any bad habits from their user profile.",
       "morning_protocol": [
         {"step": 1, "product": "Generic Product Name", "active_targets": "Key ingredients"}
       ],
@@ -61,8 +61,8 @@ export async function generateReport(analysis, questions, answers) {
         {"step": 1, "product": "Generic Product Name", "active_targets": "Key ingredients"}
       ],
       "strictly_avoid": [
-        "First thing to avoid (maximum 2 items)",
-        "Second thing to avoid"
+        "First specific bad habit or ingredient to avoid (maximum 2 items)",
+        "Second specific bad habit or ingredient to avoid"
       ],
       "clinical_targets": [
         "First habit to build (maximum 2 items)",
@@ -71,8 +71,8 @@ export async function generateReport(analysis, questions, answers) {
     }`;
 
     console.log('[ReportService] Sending Prompt to AI...');
-    const response = await model.generateContent(reportPrompt);
     
+    const response = await model.generateContent(reportPrompt);
     const responseText = response.response ? response.response.text() : response.text();
 
     let report = parseReportResponse(responseText);
@@ -98,16 +98,33 @@ function buildContext(analysis, questions, answers) {
   context += `- Texture: ${analysis.texture?.smoothness || 'Normal'}\n`;
   context += `- Pores: ${analysis.pores?.visibility || 'Normal'}\n\n`;
 
-  context += `User Preferences & Lifestyle (CRITIQUE THESE IF INCORRECT):\n`;
-  if (questions && answers && questions.length > 0) {
-    questions.forEach((question, index) => {
-      const answer = answers[index];
-      if (answer) {
-        context += `- ${question.question || question}: ${Array.isArray(answer) ? answer.join(', ') : answer}\n`;
-      }
+  context += `USER PREFERENCES & LIFESTYLE (YOU MUST CRITIQUE BAD HABITS):\n`;
+  
+  // FIX: Properly extract answers even if the 'questions' array is empty from the frontend
+  if (Array.isArray(answers) && answers.length > 0) {
+    answers.forEach((item, index) => {
+      // Support frontend structure: { questionId: '...', answer: '...' }
+      const qText = (questions && questions[index] && (questions[index].question || questions[index])) 
+                    || item.questionId 
+                    || `Factor ${index + 1}`;
+      
+      let ansText = item.answer !== undefined ? item.answer : item;
+      if (Array.isArray(ansText)) ansText = ansText.join(', ');
+      
+      context += `- ${qText}: ${ansText}\n`;
     });
+  } else if (answers && typeof answers === 'object') {
+    // Fallback if frontend sends a flat object instead of an array
+    Object.entries(answers).forEach(([key, val]) => {
+      context += `- ${key}: ${Array.isArray(val) ? val.join(', ') : val}\n`;
+    });
+  } else {
+    context += `- No lifestyle data provided.\n`;
   }
 
+  // DIAGNOSTIC LOG: Print this to your server terminal so you can verify the AI is seeing your bad habits!
+  console.log("\n--- [Diagnostic] Final AI Context String ---\n" + context + "\n--------------------------------------------\n");
+  
   return context;
 }
 

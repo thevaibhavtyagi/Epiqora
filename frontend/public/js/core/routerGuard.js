@@ -1,5 +1,5 @@
 /**
- * Dermora Pro - Enhanced Router Guard
+ * Epiqora - Enhanced Router Guard
  * Intelligently handles extension-less backend routes while 
  * ensuring users cannot skip steps in the analysis flow.
  */

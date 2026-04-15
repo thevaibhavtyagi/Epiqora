@@ -21,13 +21,8 @@
     btnNewAnalysis: document.getElementById('newAnalysisButton'),
     btnDownloadPng: document.getElementById('downloadPngButton'),
     btnRetry: document.getElementById('retryButton'),
-    errorMessage: document.getElementById('errorMessage'),
-    chatTriggerBtn: document.getElementById('chatTriggerBtn'),
-    chatSidebar: document.getElementById('chatSidebar'),
-    closeChatBtn: document.getElementById('closeChatBtn'),
-    sendChatBtn: document.getElementById('sendChatBtn'),
-    chatInput: document.getElementById('chatInput'),
-    chatMessages: document.getElementById('chatMessages')
+    errorMessage: document.getElementById('errorMessage')
+    // Removed duplicate fake-chat DOM references to prevent conflicts
   };
 
   document.addEventListener('DOMContentLoaded', function() {
@@ -39,37 +34,7 @@
     if (DOM.btnNewAnalysis) DOM.btnNewAnalysis.addEventListener('click', handleNewAnalysis);
     if (DOM.btnDownloadPng) DOM.btnDownloadPng.addEventListener('click', handlePngDownload);
     if (DOM.btnRetry) DOM.btnRetry.addEventListener('click', function() { location.reload(); });
-
-    if (DOM.chatTriggerBtn && DOM.chatSidebar) {
-      DOM.chatTriggerBtn.addEventListener('click', function() { DOM.chatSidebar.classList.add('open'); });
-    }
-    if (DOM.closeChatBtn && DOM.chatSidebar) {
-      DOM.closeChatBtn.addEventListener('click', function() { DOM.chatSidebar.classList.remove('open'); });
-    }
-    if (DOM.sendChatBtn) DOM.sendChatBtn.addEventListener('click', handleChatSend);
-    if (DOM.chatInput) {
-      DOM.chatInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') handleChatSend(); });
-    }
-  }
-
-  function handleChatSend() {
-    const text = DOM.chatInput.value.trim();
-    if (!text) return;
-
-    const userMsg = document.createElement('div');
-    userMsg.className = 'message user-message';
-    userMsg.textContent = text;
-    DOM.chatMessages.appendChild(userMsg);
-    DOM.chatInput.value = '';
-    DOM.chatMessages.scrollTop = DOM.chatMessages.scrollHeight;
-
-    setTimeout(function() {
-      const aiMsg = document.createElement('div');
-      aiMsg.className = 'message ai-message';
-      aiMsg.innerHTML = 'Analyzing your specific protocol... Based on your skin index, I highly recommend adhering strictly to the morning regimen for optimal barrier repair.';
-      DOM.chatMessages.appendChild(aiMsg);
-      DOM.chatMessages.scrollTop = DOM.chatMessages.scrollHeight;
-    }, 1000);
+    // Removed fake chat bindings; chat-sidebar.js handles all of that now globally
   }
 
   function switchView(viewName) {

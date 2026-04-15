@@ -1,6 +1,6 @@
 /**
  * Chat Controller
- * Handles chat assistant requests with full context
+ * Handles chat assistant requests with full context and strict validation
  */
 
 import { processChat } from '../services/chatService.js';
@@ -11,67 +11,52 @@ import { processChat } from '../services/chatService.js';
  */
 export async function chat(req, res, next) {
   try {
-    const { message, context, chatHistory } = req.body;
+    // 1. Extract exact payload sent by the frontend
+    const { message, analysis, answers, report, chatHistory } = req.body;
 
-    // Validate input
+    // 2. Validate user message
     if (!message || typeof message !== 'string') {
       return res.status(400).json({
         success: false,
-        error: {
-          message: 'Message must be a non-empty string',
-          code: 'INVALID_MESSAGE',
-        },
+        error: { message: 'Message must be a non-empty string', code: 'INVALID_MESSAGE' },
       });
     }
 
-    // Validate message length
-    if (message.length > 5000) {
+    if (message.length > 500) { // Enforcing length limit on backend
       return res.status(400).json({
         success: false,
-        error: {
-          message: 'Message too long. Maximum 5000 characters allowed.',
-          code: 'MESSAGE_TOO_LONG',
-        },
+        error: { message: 'Message exceeds maximum length limits.', code: 'MESSAGE_TOO_LONG' },
       });
     }
 
-    // Sanitize message (remove HTML tags to prevent prompt injection)
+    // 3. Sanitize message (basic HTML stripping)
     const sanitizedMessage = message.replace(/<[^>]*>/g, '').trim();
 
     if (sanitizedMessage.length === 0) {
       return res.status(400).json({
         success: false,
-        error: {
-          message: 'Message cannot be empty or contain only HTML tags',
-          code: 'INVALID_MESSAGE',
-        },
+        error: { message: 'Message cannot be empty.', code: 'INVALID_MESSAGE' },
       });
     }
 
-    if (!context || !context.analysis || !context.report) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: 'Missing required context: analysis and report',
-          code: 'MISSING_CONTEXT',
-        },
-      });
-    }
-
-    // Validate chat history if provided
     if (chatHistory && !Array.isArray(chatHistory)) {
       return res.status(400).json({
         success: false,
-        error: {
-          message: 'Chat history must be an array',
-          code: 'INVALID_HISTORY',
-        },
+        error: { message: 'Chat history must be an array', code: 'INVALID_HISTORY' },
       });
     }
 
-    // Process chat with sanitized message
-    console.log('[Chat Controller] Processing message...');
-    const result = await processChat(sanitizedMessage, context, chatHistory || []);
+    // 4. Bundle the extracted frontend context correctly
+    const chatContext = {
+      analysis: analysis || null,
+      report: report || null,
+      answers: answers || null,
+    };
+
+    console.log('[Chat Controller] Processing message for EpiqAI...');
+    
+    // 5. Send to Service
+    const result = await processChat(sanitizedMessage, chatContext, chatHistory || []);
 
     res.status(200).json({
       success: true,
@@ -87,10 +72,7 @@ export async function chat(req, res, next) {
     if (error.message.includes('GEMINI_API_KEY')) {
       return res.status(500).json({
         success: false,
-        error: {
-          message: 'Chat service not configured',
-          code: 'SERVICE_ERROR',
-        },
+        error: { message: 'Chat service not configured', code: 'SERVICE_ERROR' },
       });
     }
 

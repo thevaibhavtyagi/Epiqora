@@ -16,6 +16,7 @@
 
   <link rel="stylesheet" href="/styles/main.css">
   <link rel="stylesheet" href="/styles/report.css">
+  <link rel="stylesheet" href="/styles/chat.css">
 </head>
 <body>
   
@@ -80,7 +81,6 @@
               <header class="report-header">
                 <div class="header-brand">
                   <span class="brand-logo">Epiqora</span>
-                  <!-- <span class="brand-tag">Clinical</span> -->
                 </div>
                 <div class="header-patient">
                   <p class="patient-label">Prepared For</p>
@@ -154,37 +154,8 @@
     </div>
   </main>
 
-  <!-- AI Chat Trigger -->
-  <button class="chat-trigger-btn" id="chatTriggerBtn">
-    <i class="fas fa-comments"></i>
-    <span>Ask EpiqAI</span>
-  </button>
-
-  <!-- AI Chat Sidebar -->
-  <div class="chat-sidebar" id="chatSidebar">
-    <div class="chat-header">
-      <div class="chat-header-title">
-        <i class="fas fa-robot"></i>
-        <span>EpiqAI Assistant</span>
-      </div>
-      <button class="close-chat-btn" id="closeChatBtn">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-    
-    <div class="chat-messages" id="chatMessages">
-      <div class="message ai-message">
-        Hello! I'm EpiqAI. I formulated your clinical protocol. Do you have any questions about your routines or recommended products?
-      </div>
-    </div>
-    
-    <div class="chat-input-area">
-      <input type="text" class="chat-input" id="chatInput" placeholder="Ask about your regimen...">
-      <button class="chat-send-btn" id="sendChatBtn">
-        <i class="fas fa-paper-plane"></i>
-      </button>
-    </div>
-  </div>
+  <!-- NOTE: The hardcoded duplicate chat HTML was removed here. 
+       chat-sidebar.js now handles full injection and logic dynamically. -->
 
   <!-- Core Scripts -->
   <script src="/js/core/api.js"></script>
@@ -193,5 +164,6 @@
   <script src="/js/pages/report.js"></script>
   <script src="/js/components/header.js"></script>
   <script src="/js/components/footer.js"></script>
+  <script src="/js/components/chat-sidebar.js"></script>
 </body>
 </html>

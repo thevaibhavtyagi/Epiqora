@@ -65,6 +65,14 @@ app.get('/report', (req, res) => {
   res.sendFile(path.join(frontendPath, 'report.html'));
 });
 
+app.get('/privacy', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'privacy.html'));
+});
+
+app.get('/terms', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'terms.html'));
+});
+
 /* -------------------------------------------------------
    API 404 HANDLER (IMPORTANT)
 ------------------------------------------------------- */

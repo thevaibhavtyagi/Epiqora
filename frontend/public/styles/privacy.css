@@ -1,0 +1,295 @@
+/* ============================================
+   PRIVACY POLICY & LEGAL DOCUMENT STYLES
+   Extends variables from main.css
+   ============================================ */
+
+/* --- Hero Section for Legal Pages --- */
+.legal-hero {
+  padding: 160px 0 60px;
+  background: linear-gradient(180deg, var(--color-bg-secondary) 0%, var(--color-bg-base) 100%);
+  border-bottom: 1px solid var(--color-border);
+  text-align: center;
+}
+
+.legal-hero-content {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.badge-wrapper {
+  margin-bottom: 8px;
+}
+
+.legal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-hard);
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-brand-blue);
+  box-shadow: var(--shadow-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.legal-hero .hero-title {
+  font-size: 3.5rem;
+  margin-bottom: 8px;
+}
+
+.legal-hero .hero-subtitle {
+  font-size: 1.1rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.last-updated {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--color-text-tertiary);
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+  display: inline-block;
+}
+
+/* --- Layout Structure --- */
+.legal-body {
+  padding: 80px 0 120px;
+  background: var(--color-surface);
+}
+
+.legal-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 60px;
+  align-items: start;
+}
+
+/* --- Sticky Sidebar Navigation --- */
+.legal-sidebar {
+  position: relative;
+}
+
+.sidebar-sticky {
+  position: sticky;
+  top: 120px; /* Account for scrolled header */
+  background: var(--color-bg-base);
+  padding: 32px 24px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-soft);
+}
+
+.sidebar-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--color-text-primary);
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border-hard);
+}
+
+.toc-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.toc-link {
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  line-height: 1.4;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  border-left: 3px solid transparent;
+}
+
+.toc-link:hover {
+  background: var(--color-surface);
+  color: var(--color-brand-blue);
+  border-left-color: var(--color-border-hard);
+}
+
+.toc-link.active {
+  color: var(--color-brand-blue-dark);
+  font-weight: 600;
+  background: var(--color-info-light);
+  border-left-color: var(--color-brand-blue);
+}
+
+/* --- Main Content Typography & Spacing --- */
+.legal-content {
+  max-width: 800px;
+}
+
+.policy-section {
+  margin-bottom: 64px;
+  scroll-margin-top: 120px; /* Offsets anchor links for sticky header */
+}
+
+.policy-section h2 {
+  font-size: 2rem;
+  color: var(--color-text-primary);
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.policy-section p {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+  margin-bottom: 20px;
+}
+
+.policy-section strong {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.policy-list {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.policy-list li {
+  position: relative;
+  padding-left: 32px;
+  font-size: 1.05rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.policy-list li::before {
+  content: '\f111'; /* FontAwesome solid circle */
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  position: absolute;
+  left: 0;
+  top: 6px;
+  font-size: 0.5rem;
+  color: var(--color-brand-cyan);
+}
+
+/* --- Highlight Cards for Crucial Info --- */
+.policy-highlight-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  background: linear-gradient(135deg, var(--color-text-primary), var(--color-primary-dark));
+  padding: 40px;
+  border-radius: var(--radius-xl);
+  margin-bottom: 64px;
+  box-shadow: var(--shadow-xl);
+  color: white;
+}
+
+.highlight-icon {
+  font-size: 2.5rem;
+  color: var(--color-brand-cyan);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.highlight-text h3 {
+  color: white;
+  font-size: 1.5rem;
+  margin-bottom: 12px;
+  font-family: var(--font-display);
+}
+
+.highlight-text p {
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+/* --- Contact Block --- */
+.contact-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: var(--color-bg-base);
+  border: 1px solid var(--color-border-hard);
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  margin-top: 24px;
+  transition: var(--transition-smooth);
+}
+
+.contact-card:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: var(--color-brand-blue);
+}
+
+.contact-card i {
+  font-size: 2rem;
+  color: var(--color-brand-blue);
+}
+
+.contact-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.contact-details strong {
+  color: var(--color-text-primary);
+  font-size: 1.05rem;
+}
+
+.contact-details span {
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+}
+
+/* --- Responsive Layout for Legal Page --- */
+@media (max-width: 1024px) {
+  .legal-layout {
+    grid-template-columns: 240px 1fr;
+    gap: 40px;
+  }
+}
+
+@media (max-width: 800px) {
+  .legal-hero {
+    padding: 140px 0 50px;
+  }
+  
+  .legal-layout {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .legal-sidebar {
+    display: none; /* Hide sidebar on mobile to save space */
+  }
+
+  .policy-highlight-card {
+    flex-direction: column;
+    padding: 32px 24px;
+    gap: 16px;
+  }
+  
+  .highlight-icon {
+    font-size: 2rem;
+  }
+}

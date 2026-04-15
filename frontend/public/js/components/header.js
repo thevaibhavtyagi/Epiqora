@@ -111,7 +111,7 @@ function loadHeader() {
       
       if (isHomePage) {
         e.preventDefault();
-        const targetId = href.substring(2);
+        const targetId = href.substring(2); 
         const targetElement = document.getElementById(targetId);
         
         if (targetElement) {

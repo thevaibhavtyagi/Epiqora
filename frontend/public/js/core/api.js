@@ -1,21 +1,13 @@
 /**
- * DermAI Pro - API Integration Module
+ * Epiqora - API Integration Module
  * Handles all backend API calls with retry logic and error handling
  */
-
-// Configuration - Dynamic API URL for development and production
-// const API_BASE_URL = (() => {
-//   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-//     return 'http://localhost:5000';
-//   }
-//   return '';
-// })();
 
 // Configuration - Dynamic API URL for development and production
 const API_BASE_URL = (() => {
   const host = window.location.hostname;
   // We added your laptop's IP address here
-  if (host === 'localhost' || host === '127.0.0.1' || host === ' 172.22.76.198') {
+  if (host === 'localhost' || host === '127.0.0.1' || host === '172.22.76.245') {
     // This dynamically points to whichever address you are using to view the site
     return `http://${host}:5000`; 
   }
@@ -79,6 +71,9 @@ async function submitImageForAnalysis(imageData) {
 
     const formData = new FormData();
     formData.append('image', blob, `photo.${extension}`);
+    
+    // NEW: Silently attach the session ID so the backend can track drop-offs!
+    formData.append('sessionId', Storage.getSessionId());
 
     console.log('[Analysis] Submitting image for analysis...');
     const response = await apiCallWithRetry(`${API_BASE_URL}/api/analyze`, {
@@ -107,11 +102,14 @@ async function fetchQuestions(analysisData) {
   try {
     console.log('[Questions] Fetching personalized questions...');
     const response = await apiCallWithRetry(`${API_BASE_URL}/api/questions`, {
-      method: 'POST', // Changed to POST
+      method: 'POST', 
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ analysis: analysisData }), // Sending the data
+      body: JSON.stringify({ 
+        analysis: analysisData,
+        sessionId: Storage.getSessionId() // <-- NEW: Telemetry Tracker
+      }), 
     });
 
     if (!response.ok) {
@@ -140,8 +138,9 @@ async function generateReport(analysisData, questionsData, answersData) {
       },
       body: JSON.stringify({
         analysis: analysisData,
-        questions: questionsData,   // Added missing parameter
-        answers: answersData,       // Added missing parameter
+        questions: questionsData,   
+        answers: answersData,       
+        sessionId: Storage.getSessionId() // <-- NEW: Telemetry Tracker
       }),
     });
 
@@ -172,6 +171,7 @@ async function sendChatMessage(message, context = {}) {
       body: JSON.stringify({
         message,
         context,
+        sessionId: Storage.getSessionId() // <-- NEW: Telemetry Tracker
       }),
     });
 
@@ -191,4 +191,11 @@ async function sendChatMessage(message, context = {}) {
 // Initialize API on page load
 document.addEventListener('DOMContentLoaded', () => {
   checkBackendHealth();
+  
+  // NEW: Initialize the anonymous telemetry session immediately when the site opens
+  if (typeof Storage !== 'undefined' && Storage.getSessionId) {
+    const activeSession = Storage.getSessionId();
+    // Ye line ab har refresh par print hogi!
+    console.log('🔄 Active Telemetry Session:', activeSession);
+  }
 });
