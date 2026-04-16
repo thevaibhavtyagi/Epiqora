@@ -1,30 +1,19 @@
-// import cors from 'cors';
-// import { config } from '../config/environment.js';
-
-// const corsOptions = {
-//   origin: config.frontendUrl,
-//   credentials: true,
-//   optionsSuccessStatus: 200,
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization'],
-// };
-
-// export const corsMiddleware = cors(corsOptions);
-
-// export default corsMiddleware;
-
-
 import cors from 'cors';
 import { config } from '../config/environment.js';
 
 const corsOptions = {
-  // We changed this to a function to dynamically check the incoming request
   origin: function (origin, callback) {
-    // Allow requests that don't have an origin (like Postman), or requests from localhost/your IP
-    if (!origin || origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('172.22.77.141')) {
+    // 1. Allow local development
+    const isLocal = !origin || origin.includes('localhost') || origin.includes('127.0.0.1');
+    
+    // 2. Allow your specific production frontend (set in Render dashboard)
+    const isProduction = origin === process.env.FRONTEND_URL;
+
+    if (isLocal || isProduction) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      console.warn(`[CORS Blocked] Unauthorized traffic attempted from: ${origin}`);
+      callback(new Error('Not allowed by CORS security policy.'));
     }
   },
   credentials: true,

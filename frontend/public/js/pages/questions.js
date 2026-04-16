@@ -83,37 +83,65 @@
           throw new Error('Biometric data not found. Please upload an image first.');
         }
 
-        if (typeof fetchQuestions !== 'function') {
-          throw new Error('Core API missing (fetchQuestions function not found).');
+        // --- CACHE CHECK IMPLEMENTATION ---
+        let cachedQuestions = null;
+        if (typeof Storage !== 'undefined' && typeof Storage.getQuestions === 'function') {
+          cachedQuestions = Storage.getQuestions();
         }
 
-        const rawData = await fetchQuestions(storedData.analysis);
-        
         let questionsArray = [];
-        try {
-          let parsed = typeof rawData === 'string' 
-            ? JSON.parse(rawData.replace(/```json|```/gi, '').trim()) 
-            : rawData;
-          
-          if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-            questionsArray = parsed.questions || parsed.data || [];
-          } else if (Array.isArray(parsed)) {
-            questionsArray = parsed;
+
+        if (cachedQuestions && cachedQuestions.length > 0) {
+          console.log('[Epiqora] Cached questions found. Bypassing AI generation.');
+          questionsArray = cachedQuestions;
+        } else {
+          console.log('[Epiqora] Requesting new questions from AI...');
+          if (typeof fetchQuestions !== 'function') {
+            throw new Error('Core API missing (fetchQuestions function not found).');
           }
-        } catch (parseError) {
-          console.error('[Epiqora] Failed to parse AI questions schema:', parseError);
+
+          const rawData = await fetchQuestions(storedData.analysis);
+          
+          try {
+            let parsed = typeof rawData === 'string' 
+              ? JSON.parse(rawData.replace(/```json|```/gi, '').trim()) 
+              : rawData;
+            
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+              questionsArray = parsed.questions || parsed.data || [];
+            } else if (Array.isArray(parsed)) {
+              questionsArray = parsed;
+            }
+          } catch (parseError) {
+            console.error('[Epiqora] Failed to parse AI questions schema:', parseError);
+          }
+
+          if (!questionsArray || questionsArray.length === 0) {
+            throw new Error('Invalid format received from AI engine. Retrying recommended.');
+          }
+
+          // Save new questions to cache
+          if (typeof Storage !== 'undefined' && typeof Storage.saveQuestions === 'function') {
+            Storage.saveQuestions(questionsArray);
+          }
         }
+        // ----------------------------------
 
         this.state.questions = questionsArray;
         
-        if (!this.state.questions || this.state.questions.length === 0) {
-          throw new Error('Invalid format received from AI engine. Retrying recommended.');
+        // Restore existing answers if they refreshed the page halfway through
+        let existingAnswers = null;
+        if (typeof Storage !== 'undefined' && typeof Storage.getAnswers === 'function') {
+          existingAnswers = Storage.getAnswers();
         }
         
-        // Initialize answers object
-        this.state.answers = {};
+        this.state.answers = existingAnswers || {};
+        
+        // Ensure all questions have a key in the answers object
         this.state.questions.forEach(q => {
-          this.state.answers[q.id] = null;
+          if (this.state.answers[q.id] === undefined) {
+             this.state.answers[q.id] = null;
+          }
         });
         
         this.state.isLoading = false;

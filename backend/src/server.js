@@ -11,6 +11,7 @@ import analyzeRoutes from './routes/analyze.js';
 import questionsRoutes from './routes/questions.js';
 import reportRoutes from './routes/report.js';
 import chatRoutes from './routes/chat.js';
+import connectDB from './config/db.js'; // The DB Import
 
 const app = express();
 
@@ -99,12 +100,15 @@ app.get('*', (req, res) => {
 app.use(errorHandler);
 
 /* -------------------------------------------------------
-   SERVER START
+   SERVER START & DB CONNECTION
 ------------------------------------------------------- */
 const PORT = config.port;
 
+// THE FIX: We actually call the database connection before starting the server!
+await connectDB();
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📝 Environment: ${config.nodeEnv}`);
+  console.log(`📝 Environment: ${config.nodeEnv || 'development'}`);
   console.log(`🌐 Frontend served from: ${frontendPath}`);
 });

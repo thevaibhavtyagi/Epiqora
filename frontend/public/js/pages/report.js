@@ -22,7 +22,6 @@
     btnDownloadPng: document.getElementById('downloadPngButton'),
     btnRetry: document.getElementById('retryButton'),
     errorMessage: document.getElementById('errorMessage')
-    // Removed duplicate fake-chat DOM references to prevent conflicts
   };
 
   document.addEventListener('DOMContentLoaded', function() {
@@ -34,7 +33,6 @@
     if (DOM.btnNewAnalysis) DOM.btnNewAnalysis.addEventListener('click', handleNewAnalysis);
     if (DOM.btnDownloadPng) DOM.btnDownloadPng.addEventListener('click', handlePngDownload);
     if (DOM.btnRetry) DOM.btnRetry.addEventListener('click', function() { location.reload(); });
-    // Removed fake chat bindings; chat-sidebar.js handles all of that now globally
   }
 
   function switchView(viewName) {
@@ -69,6 +67,9 @@
       const analysisData = Storage.getAnalysis();
       const answersData = Storage.getAnswers() || {};
       const imageData = Storage.getImage();
+      
+      // NEW: Fetch the questions from storage safely
+      const questionsData = (typeof Storage.getQuestions === 'function') ? Storage.getQuestions() : [];
 
       if (!analysisData) {
         throw new Error("Biometric data missing. Please restart sequence.");
@@ -101,7 +102,6 @@
       let rawReport = Storage.getReport();
       let isReportValid = false;
 
-      // Check if cache is a valid object
       if (typeof rawReport === 'string') {
         try { rawReport = JSON.parse(rawReport); } catch(e) {}
       }
@@ -110,7 +110,6 @@
          isReportValid = true;
       }
 
-      // If no valid cache, fetch new
       if (!isReportValid) {
         console.log('[Epiqora] Cache empty or invalid. Triggering fresh AI generation...');
         if (typeof generateReport !== 'function') throw new Error('API Core missing.');
@@ -119,19 +118,18 @@
           return { questionId: key, answer: answersData[key] };
         });
 
-        const apiResponse = await generateReport(ad, [], answersArray);
+        // FIX: Pass the actual questionsData instead of a hardcoded []
+        const apiResponse = await generateReport(ad, questionsData, answersArray);
         
-        // Safely extract the core report BEFORE saving to avoid nesting issues
         let extractedReport = apiResponse;
         if (extractedReport?.data?.report) extractedReport = extractedReport.data.report;
         else if (extractedReport?.report) extractedReport = extractedReport.report;
         else if (extractedReport?.data) extractedReport = extractedReport.data;
 
         Storage.saveReport(extractedReport);
-        rawReport = extractedReport; // Set it so it renders immediately
+        rawReport = extractedReport;
       }
 
-      // Final unwrap just to be absolutely sure
       let finalReportObj = rawReport;
       if (finalReportObj?.data?.report) finalReportObj = finalReportObj.data.report;
       else if (finalReportObj?.report) finalReportObj = finalReportObj.report;
@@ -162,7 +160,7 @@
     let htmlBuffer = `
       <div style="margin-bottom: 18px;">
         <h2 class="section-header">
-          <i class="fas fa-microscope"></i> Clinical Assessment & Root Cause
+          <i class="fas fa-microscope"></i> Biometric Assessment & Root Cause
         </h2>
         <div class="reasoning-box">
           <p class="reasoning-text">${rootCause}</p>
@@ -234,7 +232,7 @@
     };
 
     htmlBuffer += buildList('Strictly Avoid', 'fas fa-ban', '#F43F5E', 'fas fa-times-circle', '#FB7185', avoid);
-    htmlBuffer += buildList('Clinical Targets', 'fas fa-check-circle', '#059669', 'fas fa-check', '#10B981', targets);
+    htmlBuffer += buildList('Protocol Targets', 'fas fa-check-circle', '#059669', 'fas fa-check', '#10B981', targets);
     
     if (systemic && systemic.length > 0) {
       htmlBuffer += '<div style="margin-top: auto; padding-top: 12px; border-top: 1px solid #E2E8F0;">';
@@ -281,10 +279,7 @@
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Rendering PNG...';
 
-    // MAGIC TRICK: Force the body into A4 desktop layout for the screenshot
     document.body.classList.add('exporting-mode');
-    
-    // Give the browser 100ms to apply the CSS changes
     await new Promise(resolve => setTimeout(resolve, 100));
 
     try {
@@ -293,7 +288,7 @@
         useCORS: true,
         backgroundColor: '#FFFFFF',
         logging: false,
-        windowWidth: 1000 // Fake a desktop window width
+        windowWidth: 1000 
       });
 
       const imgData = canvas.toDataURL('image/png');
@@ -308,7 +303,6 @@
       console.error("[Epiqora] Export Failed:", error);
       alert("Failed to render PNG. Please check browser permissions.");
     } finally {
-      // Revert back to mobile view immediately
       document.body.classList.remove('exporting-mode');
       btn.disabled = false;
       btn.innerHTML = originalText;

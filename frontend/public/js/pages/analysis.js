@@ -94,6 +94,21 @@
         DOM.analyzedImage.src = imageData;
       }
 
+      // --- CACHE CHECK IMPLEMENTATION ---
+      let existingAnalysis = null;
+      if (typeof Storage !== 'undefined' && typeof Storage.getAnalysis === 'function') {
+        existingAnalysis = Storage.getAnalysis();
+      }
+
+      // If data exists, render instantly and SKIP the API call
+      if (existingAnalysis) {
+        console.log('[Epiqora] Cached analysis found. Bypassing API.');
+        const analysisData = existingAnalysis.analysis || existingAnalysis.data || existingAnalysis;
+        renderDiagnosticResults(analysisData, true); // true = skip animation
+        return; 
+      }
+      // ----------------------------------
+
       startNeuralAnimation();
 
       if (typeof submitImageForAnalysis !== 'function') {
@@ -109,7 +124,7 @@
       }
 
       const analysisData = payload?.analysis || payload?.data || payload;
-      renderDiagnosticResults(analysisData);
+      renderDiagnosticResults(analysisData, false);
 
     } catch (error) {
       console.error('[Epiqora Engine Error]:', error);
@@ -132,7 +147,7 @@
     setTimeout(function() {
       if (DOM.steps[1]) DOM.steps[1].classList.remove('active');
       if (DOM.steps[2]) DOM.steps[2].classList.add('active');
-      if (DOM.loadingMessage) DOM.loadingMessage.textContent = 'Compiling clinical score index...';
+      if (DOM.loadingMessage) DOM.loadingMessage.textContent = 'Compiling biometric score index...';
     }, 3000);
   }
 
@@ -295,11 +310,14 @@
   // =========================================================================
   // METRICS RENDERING
   // =========================================================================
-  function renderDiagnosticResults(analysisData) {
+  function renderDiagnosticResults(analysisData, isCached = false) {
     if (!analysisData) {
       triggerErrorState('Invalid data payload received from backend.');
       return;
     }
+
+    // Dynamic delay: 0ms if cached, 4500ms if new request
+    const delay = isCached ? 0 : 4500;
 
     setTimeout(function() {
       switchView('results');
@@ -362,7 +380,7 @@
         DOM.metrics.texture.textContent = analysisData.texture?.smoothness || analysisData.texture || 'Smooth';
       }
 
-    }, 4500); 
+    }, delay); 
   }
 
   function triggerErrorState(message) {

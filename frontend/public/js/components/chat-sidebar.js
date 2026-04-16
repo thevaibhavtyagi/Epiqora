@@ -40,7 +40,7 @@ class ChatSidebar {
         <div class="chat-header-content">
           <div class="chat-header-text">
             <h3>EpiqAI</h3>
-            <p>AI Clinical Concierge</p>
+            <p>AI Biometric Concierge</p>
           </div>
         </div>
         <div style="display: flex; align-items: center; gap: 12px;">
@@ -107,7 +107,7 @@ class ChatSidebar {
   }
 
   initializeWelcomeMessage() {
-    // FIX: Using your official Storage utility instead of direct sessionStorage
+    // Using official Storage utility
     const skinData = typeof Storage !== 'undefined' ? Storage.getAnalysis() : null;
     
     let welcomeText = "Hello! I am EpiqAI. ";
@@ -145,12 +145,12 @@ class ChatSidebar {
     this.showTypingIndicator();
     
     try {
-      // FIX: Securely fetch pre-parsed data using your Storage utility class
+      // Securely fetch pre-parsed data using your Storage utility class
       const skinData = typeof Storage !== 'undefined' ? Storage.getAnalysis() : null;
       const answersData = typeof Storage !== 'undefined' ? Storage.getAnswers() : null;
       const reportData = typeof Storage !== 'undefined' ? Storage.getReport() : null;
       
-      // Filter out the welcome message to prevent AI context looping
+      // Filter out the welcome message to prevent AI context looping, and map safely
       const chatHistory = this.messages
         .slice(0, -1) 
         .filter((msg, index) => !(index === 0 && msg.sender === 'assistant'))
@@ -169,7 +169,6 @@ class ChatSidebar {
         },
         body: JSON.stringify({
           message,
-          // Since Storage.get...() already returns a parsed object, we pass them directly!
           analysis: skinData,
           answers: answersData,
           report: reportData,
@@ -320,7 +319,6 @@ class ChatSidebar {
     setTimeout(() => this.inputField.focus(), 300);
     this.scrollToBottom();
     
-    // Only lock background scrolling on mobile devices
     if (window.innerWidth <= 768) {
       document.body.style.overflow = 'hidden'; 
     }
@@ -334,7 +332,6 @@ class ChatSidebar {
   }
 }
 
-// Global initialization
 document.addEventListener('DOMContentLoaded', () => {
   window.chatSidebar = new ChatSidebar();
 });

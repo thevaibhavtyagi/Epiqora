@@ -13,7 +13,7 @@ function loadFooter() {
               <span class="logo-text">Epiqora</span>
             </a>
             <span class="footer-tagline">Decode Your Skin. Elevate Your Routine.</span>
-            <p class="footer-description">Clinical-grade AI skincare analysis for personalized routines tailored to your unique skin profile.</p>
+            <p class="footer-description">Advanced, data-driven AI skincare analysis designed for precision and personalized care.</p>
           </div>
           
           <div class="footer-column">
@@ -30,13 +30,18 @@ function loadFooter() {
             <ul class="footer-links">
               <li><a href="/privacy">Privacy Policy</a></li>
               <li><a href="/terms">Terms of Service</a></li>
-              <li><a href="/contact">Contact Us</a></li>
             </ul>
           </div>
         </div>
         
         <div class="footer-bottom">
-          <p class="footer-copyright">&copy; ${new Date().getFullYear()} Epiqora. All rights reserved.</p>
+          <p class="footer-copyright">
+            &copy; ${new Date().getFullYear()} Epiqora. All rights reserved. | Developer <a href="https://vaibhavtyagi.me" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; text-underline-offset: 3px;">Vaibhav Tyagi</a>
+            <br>
+            <span style="opacity: 0.6; font-size: 0.85em; display: inline-block; margin-top: 8px;">
+              Disclaimer: For cosmetic and informational purposes only. Not a certified medical device.
+            </span>
+          </p>
         </div>
       </div>
     </footer>

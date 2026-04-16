@@ -39,11 +39,18 @@ export async function chat(req, res, next) {
       });
     }
 
-    if (chatHistory && !Array.isArray(chatHistory)) {
-      return res.status(400).json({
-        success: false,
-        error: { message: 'Chat history must be an array', code: 'INVALID_HISTORY' },
-      });
+    // Strict validation of chat history payload
+    let validChatHistory = [];
+    if (chatHistory) {
+      if (!Array.isArray(chatHistory)) {
+        return res.status(400).json({
+          success: false,
+          error: { message: 'Chat history must be an array', code: 'INVALID_HISTORY' },
+        });
+      }
+      validChatHistory = chatHistory.filter(msg => 
+        msg && typeof msg === 'object' && typeof msg.content === 'string' && typeof msg.role === 'string'
+      );
     }
 
     // 4. Bundle the extracted frontend context correctly
@@ -56,7 +63,7 @@ export async function chat(req, res, next) {
     console.log('[Chat Controller] Processing message for EpiqAI...');
     
     // 5. Send to Service
-    const result = await processChat(sanitizedMessage, chatContext, chatHistory || []);
+    const result = await processChat(sanitizedMessage, chatContext, validChatHistory);
 
     res.status(200).json({
       success: true,

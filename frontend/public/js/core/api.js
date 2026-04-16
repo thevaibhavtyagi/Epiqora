@@ -3,15 +3,15 @@
  * Handles all backend API calls with retry logic and error handling
  */
 
-// Configuration - Dynamic API URL for development and production
 const API_BASE_URL = (() => {
   const host = window.location.hostname;
-  // We added your laptop's IP address here
-  if (host === 'localhost' || host === '127.0.0.1' || host === '172.22.76.245') {
-    // This dynamically points to whichever address you are using to view the site
+  
+  // Local Development
+  if (host === 'localhost' || host === '127.0.0.1' || host.startsWith('192.168.') || host.startsWith('172.')) {
     return `http://${host}:5000`; 
   }
-  return '';
+  
+  return 'https://epiqora-backend.onrender.com'; 
 })();
 
 /**

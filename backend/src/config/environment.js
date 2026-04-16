@@ -7,6 +7,7 @@ export const config = {
   port: process.env.PORT || 5000,
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
   geminiApiKey: process.env.GEMINI_API_KEY || '',
+  mongoUri: process.env.MONGO_URI, 
 };
 
 export default config;

@@ -6,29 +6,20 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { config } from '../config/environment.js';
 
-// Initialize Gemini
 const genAI = new GoogleGenerativeAI(config.geminiApiKey);
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/**
- * Generate adaptive questions based on skin analysis
- * @param {Object} analysisData - Skin analysis data from Gemini
- * @returns {Promise<Object>} Generated questions
- */
 export async function generateQuestions(analysisData) {
   try {
-    if (!config.geminiApiKey) {
-      throw new Error('GEMINI_API_KEY is not configured');
-    }
+    if (!config.geminiApiKey) throw new Error('GEMINI_API_KEY is not configured');
 
-    // UPDATED: Use the modern model and force strict JSON output
+    // UPDATED: Shifted to flash-lite. Generating text JSON doesn't require full vision models.
+    // This saves massive quota and avoids 503 limits.
     const model = genAI.getGenerativeModel({ 
-      model: 'gemini-2.5-flash',
-      generationConfig: {
-        responseMimeType: "application/json",
-      }
+      model: 'gemini-2.5-flash-lite',
+      generationConfig: { responseMimeType: "application/json" }
     });
 
-    // Build context from analysis
     const analysisContext = formatAnalysisContext(analysisData);
 
     const questionPrompt = `You are a skincare expert. Based on this skin analysis data, generate 5 personalized follow-up questions to understand the user's skincare habits, concerns, and goals.
@@ -49,105 +40,79 @@ Generate questions in this exact JSON format:
   ]
 }
 
-Requirements:
-1. Each question must be relevant to the analyzed skin issues
-2. Questions should help create a personalized skincare routine
-3. Use appropriate question types (single_choice, multiple_choice, or text)
-4. Make questions clear and actionable
-5. Do not include markdown formatting.`;
+CRITICAL REQUIREMENTS:
+1. MAX 4 OPTIONS PER QUESTION: For multiple/single choice, you MUST limit options to a maximum of 4 broad categories. Do not overwhelm the user with long lists of ingredients. Group them (e.g., "Chemical Exfoliants (AHA/BHA)" instead of listing 5 different acids).
+2. Always include a "None / Not Sure" option if applicable.
+3. Keep questions clear, concise, and actionable.`;
 
-    console.log('[Questions] Requesting questions from AI...');
-    const response = await model.generateContent(questionPrompt);
-    const responseText = response.response.text();
+    let attempt = 0;
+    const maxRetries = 4;
+    let responseText = "";
 
-    // Parse JSON response safely
+    // Exponential Backoff Loop
+    while (attempt < maxRetries) {
+      try {
+        console.log('[Questions] Requesting questions from AI...');
+        const response = await model.generateContent(questionPrompt);
+        responseText = response.response.text();
+        break;
+      } catch (error) {
+        attempt++;
+        const isRateLimit = error.message.includes('503') || error.message.includes('429');
+        if (isRateLimit && attempt < maxRetries) {
+          const waitTime = (Math.pow(2, attempt) * 1000) + (Math.random() * 500);
+          console.warn(`[Questions API] Server busy. Retrying in ${Math.round(waitTime/1000)}s...`);
+          await delay(waitTime);
+        } else {
+          throw error;
+        }
+      }
+    }
+
     const questionsData = parseQuestionsResponse(responseText);
+    
+    // Safely enforce the option limit on the backend just in case AI disobeys
+    questionsData.questions.forEach(q => {
+      if (q.options && q.options.length > 5) {
+        q.options = q.options.slice(0, 4);
+        q.options.push("Other / Not listed");
+      }
+    });
 
-    // Validate structure
     validateQuestionsStructure(questionsData);
 
     console.log('[Questions] Generated questions successfully');
-    return {
-      success: true,
-      data: questionsData,
-    };
+    return { success: true, data: questionsData };
+    
   } catch (error) {
     console.error('[Questions] Generation error:', error.message);
     throw error;
   }
 }
 
-/**
- * Format analysis context for prompt
- * @param {Object} analysisData - Skin analysis data
- * @returns {string} Formatted context
- */
 function formatAnalysisContext(analysisData) {
   return `
-- Skin Type: ${analysisData.skin_type?.type} (${analysisData.skin_type?.confidence}% confidence)
+- Skin Type: ${analysisData.skin_type?.type}
 - Acne: ${analysisData.acne?.present ? `Present (${analysisData.acne?.severity})` : 'Not detected'}
 - Pigmentation: ${analysisData.pigmentation?.level}
 - Dark Circles: ${analysisData.dark_circles?.present ? 'Present' : 'Not detected'}
-- Pores: ${analysisData.pores?.visibility}
-- Texture: ${analysisData.texture?.smoothness}
-- Overall Score: ${analysisData.overall_score}/100
-  `;
+- Overall Score: ${analysisData.overall_score}/100`;
 }
 
-/**
- * Parse questions response
- * @param {string} responseText - Raw response from Gemini
- * @returns {Object} Parsed questions
- */
 function parseQuestionsResponse(responseText) {
   try {
-    // With responseMimeType enabled, this should be perfect JSON
     return JSON.parse(responseText);
   } catch (e) {
-    // Fallback regex extraction if needed
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('No JSON found in questions response');
-    }
-    try {
-      return JSON.parse(jsonMatch[0]);
-    } catch (fallbackError) {
-      throw new Error(`Invalid JSON in questions response: ${fallbackError.message}`);
-    }
+    if (!jsonMatch) throw new Error('No JSON found in questions response');
+    return JSON.parse(jsonMatch[0]);
   }
 }
 
-/**
- * Validate questions structure
- * @param {Object} data - Parsed questions data
- * @throws {Error} If structure is invalid
- */
 function validateQuestionsStructure(data) {
-  if (!data.questions || !Array.isArray(data.questions)) {
-    throw new Error('Missing or invalid questions array');
-  }
-
-  if (data.questions.length === 0) {
-    throw new Error('Questions array is empty');
-  }
-
-  for (let i = 0; i < data.questions.length; i++) {
-    const q = data.questions[i];
-
-    if (!q.id || !q.question || !q.type) {
-      throw new Error(`Question ${i} missing required fields`);
-    }
-
-    if (!['single_choice', 'multiple_choice', 'text'].includes(q.type)) {
-      throw new Error(`Question ${i} has invalid type: ${q.type}`);
-    }
-
-    if (q.type !== 'text' && (!q.options || !Array.isArray(q.options))) {
-      throw new Error(`Question ${i} must have options for type ${q.type}`);
-    }
+  if (!data.questions || !Array.isArray(data.questions) || data.questions.length === 0) {
+    throw new Error('Invalid questions array');
   }
 }
 
-export default {
-  generateQuestions,
-};
+export default { generateQuestions };

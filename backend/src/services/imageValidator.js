@@ -6,7 +6,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 export async function validateImage(imageBuffer, providedMimeType) {
