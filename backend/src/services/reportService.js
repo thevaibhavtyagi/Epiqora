@@ -15,9 +15,8 @@ export async function generateReport(analysis, questions, answers) {
 
     const context = buildContext(analysis, questions, answers);
 
-    // Kept on flash-lite: Perfect for JSON mapping, low token cost, high availability.
     const model = genAI.getGenerativeModel({ 
-      model: 'gemini-2.5-flash-lite',
+      model: 'gemini-2.5-flash',
       generationConfig: { responseMimeType: "application/json" }
     });
 
