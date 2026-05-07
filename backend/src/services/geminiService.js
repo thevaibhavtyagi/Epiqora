@@ -42,9 +42,9 @@ export async function analyzeSkin(imageBuffer, mimeType, maxRetries = 3) {
     const base64Image = imageBuffer.toString('base64');
 
     // Get the generative model and force JSON output
-    // UPDATED: Using the active gemini-2.0-flash model to resolve the 404 error
+    // UPDATED: Using the active gemini-2.5-flash model to resolve the 404 error
     const model = genAI.getGenerativeModel({ 
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.5-flash',
       generationConfig: {
         responseMimeType: "application/json",
       }
